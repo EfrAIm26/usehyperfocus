@@ -35,21 +35,37 @@ export default function Message({ message, fontStyle, onOpenDiagram }: MessagePr
   // Settings are now FROZEN at message creation, no need to freeze on render
   // This useEffect is kept for backwards compatibility with old messages
   useEffect(() => {
-    if (message.appliedFontStyle === undefined) {
-      // Old message without frozen settings - freeze now
-      const settings = storage.getSettings();
+    if (message.appliedFontStyle === undefined && message.role === 'assistant') {
+      // Old message without frozen settings - freeze with 'normal' as default
+      // This ensures old messages don't change when global settings change
       const chats = storage.getChats();
       const chat = chats.find(c => c.messages.some(m => m.id === message.id));
       if (chat) {
         const msg = chat.messages.find(m => m.id === message.id);
         if (msg && msg.appliedFontStyle === undefined) {
-          msg.appliedFontStyle = settings.fontStyle;
-          msg.appliedChunking = settings.semanticChunking;
+          msg.appliedFontStyle = 'normal'; // FIXED VALUE, not current global setting
+          msg.appliedChunking = false; // Default to OFF for old messages
           storage.saveChat(chat);
+          console.log(`✅ Frozen old message ${message.id} with style: normal`);
         }
       }
     }
-  }, [message.id]); // Run once per message
+    
+    // Also freeze user messages
+    if (message.appliedFontStyle === undefined && message.role === 'user') {
+      const chats = storage.getChats();
+      const chat = chats.find(c => c.messages.some(m => m.id === message.id));
+      if (chat) {
+        const msg = chat.messages.find(m => m.id === message.id);
+        if (msg && msg.appliedFontStyle === undefined) {
+          msg.appliedFontStyle = 'normal';
+          msg.appliedChunking = false;
+          storage.saveChat(chat);
+          console.log(`✅ Frozen old user message ${message.id} with style: normal`);
+        }
+      }
+    }
+  }, [message.id, message.role]); // Run once per message
 
   // Load or analyze semantic chunks (ONLY ONCE per message)
   useEffect(() => {
