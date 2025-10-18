@@ -31,22 +31,24 @@ export default function Message({ message, fontStyle, onOpenDiagram }: MessagePr
     }
   }, [message.id, message.mermaidCode, message.role, onOpenDiagram]);
 
-  // Freeze settings on first render for this message (only once!)
+  // Settings are now FROZEN at message creation, no need to freeze on render
+  // This useEffect is kept for backwards compatibility with old messages
   useEffect(() => {
-    if (message.role === 'assistant' && message.appliedFontStyle === undefined) {
-      const settings = storage.getSettings(); // Get fresh settings
+    if (message.appliedFontStyle === undefined) {
+      // Old message without frozen settings - freeze now
+      const settings = storage.getSettings();
       const chats = storage.getChats();
       const chat = chats.find(c => c.messages.some(m => m.id === message.id));
       if (chat) {
         const msg = chat.messages.find(m => m.id === message.id);
-        if (msg && msg.appliedFontStyle === undefined) { // Double check
+        if (msg && msg.appliedFontStyle === undefined) {
           msg.appliedFontStyle = settings.fontStyle;
           msg.appliedChunking = settings.semanticChunking;
           storage.saveChat(chat);
         }
       }
     }
-  }, [message.id, message.role]); // Only depend on message id/role, NOT on settings
+  }, [message.id]); // Run once per message
 
   // Load or analyze semantic chunks (ONLY ONCE per message)
   useEffect(() => {
@@ -106,10 +108,17 @@ export default function Message({ message, fontStyle, onOpenDiagram }: MessagePr
   }, [message.id, message.role, message.content, message.semanticChunks, effectiveChunking]);
 
   if (message.role === 'user') {
+    // User messages also respect frozen font style
+    const userFontClass = effectiveFontStyle === 'dyslexic' 
+      ? 'font-dyslexic' 
+      : effectiveFontStyle === 'lexend' 
+      ? 'font-lexend' 
+      : '';
+    
     return (
       <div className="px-6 py-4 bg-blue-50 border-b border-blue-100 hover:shadow-[0_0_12px_rgba(59,130,246,0.15)] transition-shadow">
         <div className="max-w-4xl">
-          <p className="text-text-primary whitespace-pre-wrap">
+          <p className={`text-text-primary whitespace-pre-wrap ${userFontClass}`}>
             {message.content}
           </p>
         </div>

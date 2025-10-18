@@ -67,12 +67,17 @@ export function useChat() {
     setIsLoading(true);
 
     try {
-      // Create user message
+      // Get current settings and FREEZE them for this message
+      const currentSettings = storage.getSettings();
+      
+      // Create user message with FROZEN settings
       const userMessage: Message = {
         id: generateId(),
         role: 'user',
         content,
         timestamp: Date.now(),
+        appliedFontStyle: currentSettings.fontStyle, // FROZEN at creation
+        appliedChunking: currentSettings.semanticChunking, // FROZEN at creation
       };
 
       // Update chat with user message
@@ -110,13 +115,16 @@ export function useChat() {
       // Extract diagram code if present
       const { mermaidCode, explanation } = extractContent(aiResponse);
 
-      // Create assistant message
+      // Create assistant message with FROZEN settings (same as user message)
       const assistantMessage: Message = {
         id: generateId(),
         role: 'assistant',
         content: explanation || aiResponse,
         mermaidCode: mermaidCode,
         timestamp: Date.now(),
+        appliedFontStyle: currentSettings.fontStyle, // FROZEN at creation
+        appliedChunking: currentSettings.semanticChunking, // FROZEN at creation
+        semanticChunks: null, // Will be populated if chunking is enabled
       };
 
       // Update chat with assistant message
@@ -134,12 +142,14 @@ export function useChat() {
     } catch (error) {
       console.error('Error sending message:', error);
       
-      // Create error message
+      // Create error message with FROZEN settings
       const errorMessage: Message = {
         id: generateId(),
         role: 'assistant',
         content: 'Sorry, I encountered an error while processing your message. Please try again.',
         timestamp: Date.now(),
+        appliedFontStyle: storage.getSettings().fontStyle, // FROZEN at creation
+        appliedChunking: storage.getSettings().semanticChunking, // FROZEN at creation
       };
 
       const errorChat = {
