@@ -7,6 +7,7 @@ import SettingsPanel from './components/settings/SettingsPanel';
 import DiagramSidePanel from './components/diagrams/DiagramSidePanel';
 import { useChat } from './hooks/useChat';
 import { useHyperfocus } from './hooks/useHyperfocus';
+import { cleanupMermaidErrors } from './lib/mermaid-config';
 
 export default function App() {
   const [showSettings, setShowSettings] = useState(true); // Settings abierto por defecto
@@ -37,6 +38,15 @@ export default function App() {
 
   // Hyperfocus management
   const { checkFocus, isAnalyzing } = useHyperfocus(currentChat);
+
+  // Clean up Mermaid errors periodically (CRITICAL: keeps UI clean)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      cleanupMermaidErrors();
+    }, 500); // Clean every 500ms
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Handler for closing diagram panel
   const handleCloseDiagram = () => {

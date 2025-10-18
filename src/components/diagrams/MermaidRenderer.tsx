@@ -1,51 +1,7 @@
 // MermaidRenderer component - Renders Mermaid diagrams inline with controls
 import { useEffect, useRef, useState } from 'react';
-import mermaid from 'mermaid';
 import { FiZoomIn, FiZoomOut, FiDownload, FiCode, FiEye } from 'react-icons/fi';
-
-// Initialize Mermaid once with improved configuration for neurodivergent users
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'default',
-  securityLevel: 'loose',
-  fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-  fontSize: 20, // Increased from 18 to 20
-  flowchart: {
-    useMaxWidth: true,
-    htmlLabels: true,
-    curve: 'basis',
-    padding: 40,
-    nodeSpacing: 100,
-    rankSpacing: 100,
-  },
-  mindmap: {
-    padding: 50,
-    maxNodeWidth: 300,
-    useMaxWidth: true,
-  },
-  gantt: {
-    fontSize: 18,
-    numberSectionStyles: 4,
-    axisFormat: '%d/%m',
-    barHeight: 35,
-    barGap: 10,
-  },
-  sequence: {
-    actorMargin: 100,
-    boxMargin: 20,
-    messageMargin: 50,
-  },
-  themeVariables: {
-    fontSize: '20px', // Increased
-    fontFamily: 'Inter, system-ui, sans-serif',
-    primaryColor: '#e0f2fe',
-    primaryTextColor: '#0c4a6e',
-    primaryBorderColor: '#0ea5e9',
-    lineColor: '#64748b',
-    secondaryColor: '#f1f5f9',
-    tertiaryColor: '#fef3c7',
-  },
-});
+import { renderMermaid, cleanupMermaidErrors } from '../../lib/mermaid-config';
 
 interface MermaidRendererProps {
   code: string;
@@ -57,7 +13,6 @@ export default function MermaidRenderer({ code }: MermaidRendererProps) {
   const [activeTab, setActiveTab] = useState<'view' | 'code'>('view');
   const [editableCode, setEditableCode] = useState(code);
   const [codeToRender, setCodeToRender] = useState(code);
-  const [renderError, setRenderError] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
 
   // Update code when prop changes
@@ -66,12 +21,11 @@ export default function MermaidRenderer({ code }: MermaidRendererProps) {
     setEditableCode(code);
   }, [code]);
 
-  // Render diagram
+  // Render diagram with error suppression
   useEffect(() => {
     if (activeTab !== 'view' || !containerRef.current || isRendering) return;
 
     setIsRendering(true);
-    setRenderError(null);
 
     const renderDiagram = async () => {
       try {
@@ -82,8 +36,8 @@ export default function MermaidRenderer({ code }: MermaidRendererProps) {
           containerRef.current.innerHTML = '';
         }
 
-        // Render
-        const { svg } = await mermaid.render(id, codeToRender);
+        // Use safe render function
+        const { svg } = await renderMermaid(id, codeToRender);
 
         // Insert SVG
         if (containerRef.current) {
@@ -96,19 +50,20 @@ export default function MermaidRenderer({ code }: MermaidRendererProps) {
             svgElement.style.height = 'auto';
           }
         }
+        
+        // Clean up any error elements
+        setTimeout(() => cleanupMermaidErrors(), 0);
       } catch (error) {
-        console.error('Mermaid render error:', error);
-        setRenderError('Failed to render diagram. Please check the code syntax.');
-        if (containerRef.current) {
-          containerRef.current.innerHTML = `
-            <div class="text-red-600 p-6 bg-red-50 rounded-lg">
-              <strong>Error rendering diagram:</strong><br/>
-              ${error instanceof Error ? error.message : 'Unknown error'}
-            </div>
-          `;
-        }
+        // Silently fail - do NOT show errors in UI
+        console.warn('Diagram render failed (silent):', error);
+        
+        // Clean up any error elements
+        cleanupMermaidErrors();
       } finally {
         setIsRendering(false);
+        
+        // Final cleanup pass
+        setTimeout(() => cleanupMermaidErrors(), 100);
       }
     };
 
@@ -292,12 +247,7 @@ export default function MermaidRenderer({ code }: MermaidRendererProps) {
         </div>
       )}
 
-      {/* Error message */}
-      {renderError && activeTab === 'view' && (
-        <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-sm text-red-700">
-          {renderError}
-        </div>
-      )}
+      {/* Error message - REMOVED, errors are silent */}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // DiagramSidePanel - Panel lateral para diagramas (minimalista)
 import { useState, useRef, useEffect } from 'react';
 import { FiX, FiZoomIn, FiZoomOut, FiDownload, FiCode, FiEye, FiEdit3 } from 'react-icons/fi';
-import mermaid from 'mermaid';
+import { renderMermaid, cleanupMermaidErrors } from '../../lib/mermaid-config';
 
 interface DiagramSidePanelProps {
   code: string;
@@ -17,7 +17,6 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
   const [editableCode, setEditableCode] = useState(code);
   const [codeToRender, setCodeToRender] = useState(code);
   const [editInstruction, setEditInstruction] = useState('');
-  const [renderError, setRenderError] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [showEditBox, setShowEditBox] = useState(false);
 
@@ -29,12 +28,11 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
     setShowEditBox(false);
   }, [code]);
 
-  // Render diagram
+  // Render diagram with error suppression
   useEffect(() => {
     if (activeTab !== 'view' || !containerRef.current || isRendering || !isOpen) return;
 
     setIsRendering(true);
-    setRenderError(null);
 
     const renderDiagram = async () => {
       try {
@@ -44,7 +42,8 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
           containerRef.current.innerHTML = '';
         }
 
-        const { svg } = await mermaid.render(id, codeToRender);
+        // Use safe render function
+        const { svg } = await renderMermaid(id, codeToRender);
 
         if (containerRef.current) {
           containerRef.current.innerHTML = svg;
@@ -55,22 +54,20 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
             svgElement.style.height = 'auto';
           }
         }
-            } catch (error) {
-              console.error('Mermaid render error:', error);
-              setRenderError('Invalid diagram syntax');
-              if (containerRef.current) {
-                containerRef.current.innerHTML = `
-                  <div class="text-red-700 p-3 bg-red-50 rounded-lg text-sm border border-red-200 flex items-start gap-2">
-                    <span class="text-red-500 text-lg">⚠️</span>
-                    <div>
-                      <div class="font-semibold">Invalid Mermaid syntax</div>
-                      <div class="text-xs text-gray-600 mt-1">Check Code tab or ask AI to regenerate</div>
-                    </div>
-                  </div>
-                `;
-              }
-            } finally {
+        
+        // Clean up any error elements immediately after render
+        setTimeout(() => cleanupMermaidErrors(), 0);
+      } catch (error) {
+        // Silently fail - do NOT show errors in UI
+        console.warn('Diagram render failed (silent):', error);
+        
+        // Clean up any error elements
+        cleanupMermaidErrors();
+      } finally {
         setIsRendering(false);
+        
+        // Final cleanup pass
+        setTimeout(() => cleanupMermaidErrors(), 100);
       }
     };
 
@@ -299,12 +296,7 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
         </div>
       )}
 
-      {/* Error message */}
-      {renderError && activeTab === 'view' && (
-        <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-sm text-red-700">
-          {renderError}
-        </div>
-      )}
+      {/* Error message - REMOVED, errors are silent */}
     </div>
   );
 }
