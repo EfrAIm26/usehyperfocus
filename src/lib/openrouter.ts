@@ -15,6 +15,10 @@ interface OpenRouterResponse {
       content: string;
     };
   }>;
+  error?: {
+    message: string;
+    code: string;
+  };
 }
 
 /**
@@ -24,13 +28,17 @@ export async function sendChatCompletion(
   messages: Message[],
   model: string = DEFAULT_MODEL
 ): Promise<string> {
+  if (!API_KEY || API_KEY === 'undefined') {
+    throw new Error('API key not configured');
+  }
+
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://usehyperfocus.com',
+        'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://usehyperfocus.vercel.app',
         'X-Title': 'Hyperfocus AI',
       },
       body: JSON.stringify({
@@ -41,14 +49,22 @@ export async function sendChatCompletion(
       }),
     });
 
+    const data: OpenRouterResponse = await response.json();
+
     if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.statusText}`);
+      const errorMsg = data.error?.message || response.statusText;
+      console.error('OpenRouter Error:', { status: response.status, error: data.error, model });
+      throw new Error(`AI Error (${response.status}): ${errorMsg}`);
     }
 
-    const data: OpenRouterResponse = await response.json();
-    return data.choices[0]?.message?.content || '';
+    const content = data.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('Empty AI response');
+    }
+
+    return content;
   } catch (error) {
-    console.error('Error calling OpenRouter API:', error);
+    console.error('OpenRouter API failed:', error);
     throw error;
   }
 }
@@ -63,7 +79,10 @@ export function detectDiagramIntent(userMessage: string): boolean {
     'chart', 'graph', 'draw', 'sketch', 'mermaid',
     'sequence', 'class diagram', 'gantt', 'timeline',
     'pie chart', 'quadrant', 'sankey', 'show me',
-    'create a diagram', 'make a diagram', 'generate diagram'
+    'create a diagram', 'make a diagram', 'generate diagram',
+    'mapa mental', 'hacer un mapa', 'hazme un', 'dame un',
+    'crea un diagrama', 'dibuja', 'visualiza', 'muestra',
+    'gráfico', 'organigrama', 'línea de tiempo'
   ];
 
   const lowerMessage = userMessage.toLowerCase();
@@ -75,19 +94,35 @@ export function detectDiagramIntent(userMessage: string): boolean {
  */
 export function getSystemPrompt(isDiagramRequest: boolean): string {
   if (isDiagramRequest) {
-    return `You are an expert at creating Mermaid diagrams. When users request diagrams or visualizations, respond with valid Mermaid code in \`\`\`mermaid code blocks followed by a brief explanation.
+    return `You are an expert at creating VALID Mermaid diagrams. Generate code that renders correctly.
 
-Support these diagram types:
-- flowchart/graph (process flows)
-- mindmap (concepts and ideas)
-- sequenceDiagram (interactions over time)
-- classDiagram (class structures)
-- gantt (timelines and schedules)
-- pie (proportions)
-- quadrantChart (2x2 matrices)
-- sankey (flow quantities)
+CRITICAL: Use ONLY these types with correct syntax:
 
-Always start the Mermaid code block clearly and end it before the explanation.`;
+1. mindmap (for concepts):
+\`\`\`mermaid
+mindmap
+  root((Topic))
+    Branch1
+      Sub1
+    Branch2
+\`\`\`
+
+2. flowchart (for processes):
+\`\`\`mermaid
+flowchart TD
+    A[Start] --> B[Step]
+\`\`\`
+
+3. sequenceDiagram, classDiagram, gantt, pie (if requested)
+
+RULES:
+- Start with diagram type keyword
+- Use proper indentation
+- Test syntax is valid
+- Keep it simple
+- Add brief explanation AFTER code block
+
+Respond with diagram code first, then explanation.`;
   }
 
   return `You are Hyperfocus AI, an AI assistant designed specifically to help neurodivergent individuals maximize their concentration and learning. 
