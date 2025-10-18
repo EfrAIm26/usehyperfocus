@@ -55,25 +55,21 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
             svgElement.style.height = 'auto';
           }
         }
-      } catch (error) {
-        console.error('Mermaid render error:', error);
-        setRenderError('Syntax error in diagram code');
-        if (containerRef.current) {
-          containerRef.current.innerHTML = `
-            <div class="text-red-700 p-4 bg-red-50 rounded-lg text-xs border border-red-200">
-              <div class="font-semibold mb-2">⚠️ Diagram Error</div>
-              <div class="text-red-600">${error instanceof Error ? error.message.substring(0, 200) : 'Invalid Mermaid syntax'}</div>
-              <div class="mt-3 text-gray-600">
-                Try:
-                <ul class="list-disc ml-4 mt-1">
-                  <li>Check the Code tab for syntax errors</li>
-                  <li>Ask AI to fix the diagram</li>
-                </ul>
-              </div>
-            </div>
-          `;
-        }
-      } finally {
+            } catch (error) {
+              console.error('Mermaid render error:', error);
+              setRenderError('Invalid diagram syntax');
+              if (containerRef.current) {
+                containerRef.current.innerHTML = `
+                  <div class="text-red-700 p-3 bg-red-50 rounded-lg text-sm border border-red-200 flex items-start gap-2">
+                    <span class="text-red-500 text-lg">⚠️</span>
+                    <div>
+                      <div class="font-semibold">Invalid Mermaid syntax</div>
+                      <div class="text-xs text-gray-600 mt-1">Check Code tab or ask AI to regenerate</div>
+                    </div>
+                  </div>
+                `;
+              }
+            } finally {
         setIsRendering(false);
       }
     };

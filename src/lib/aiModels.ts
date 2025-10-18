@@ -32,8 +32,8 @@ export const AI_MODELS: AIModel[] = [
     description: 'Powerful and balanced AI',
   },
   {
-    id: 'anthropic/claude-3.7-haiku-20250219',
-    name: 'Claude Haiku 4.5',
+    id: 'anthropic/claude-3-haiku',
+    name: 'Claude Haiku',
     provider: 'anthropic',
     description: 'Fast and efficient Claude model',
   },

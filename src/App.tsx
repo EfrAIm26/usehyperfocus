@@ -75,19 +75,19 @@ export default function App() {
   const handleEditDiagram = async (instruction: string) => {
     if (!diagramPanel.messageId || !currentChat) return;
 
-    const editMessage = `Edit the Mermaid diagram: ${instruction}
+    const editMessage = `EDIT DIAGRAM REQUEST: ${instruction}
 
-Current code:
+Current diagram:
 \`\`\`mermaid
 ${diagramPanel.code}
 \`\`\`
 
-IMPORTANT:
-1. Keep the same diagram type (mindmap/flowchart/etc.)
-2. Apply ONLY the requested change
-3. Respond with VALID Mermaid syntax
-4. Wrap in \`\`\`mermaid\`\`\` code block
-5. DO NOT include explanations outside the code block`;
+RESPOND WITH ONLY:
+\`\`\`mermaid
+[updated code]
+\`\`\`
+
+NO TEXT BEFORE OR AFTER THE CODE BLOCK.`;
     
     await sendMessage(editMessage);
     setDiagramPanel({ ...diagramPanel, isOpen: false }); // Close panel to see new response

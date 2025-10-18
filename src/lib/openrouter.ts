@@ -94,35 +94,49 @@ export function detectDiagramIntent(userMessage: string): boolean {
  */
 export function getSystemPrompt(isDiagramRequest: boolean): string {
   if (isDiagramRequest) {
-    return `You are an expert at creating VALID Mermaid diagrams. Generate code that renders correctly.
+    return `You are a Mermaid diagram expert. Generate ONLY valid, tested Mermaid code.
 
-CRITICAL: Use ONLY these types with correct syntax:
+MANDATORY FORMAT:
+\`\`\`mermaid
+[your code here]
+\`\`\`
 
-1. mindmap (for concepts):
+VALID SYNTAXES:
+
+**MINDMAP** (use for concepts/topics):
 \`\`\`mermaid
 mindmap
-  root((Topic))
-    Branch1
-      Sub1
-    Branch2
+  root((Main Topic))
+    SubTopic1
+      Detail1
+      Detail2
+    SubTopic2
+      Detail3
 \`\`\`
 
-2. flowchart (for processes):
+**FLOWCHART** (use for processes):
 \`\`\`mermaid
-flowchart TD
-    A[Start] --> B[Step]
+flowchart LR
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action1]
+    B -->|No| D[Action2]
 \`\`\`
 
-3. sequenceDiagram, classDiagram, gantt, pie (if requested)
+**ABSOLUTE RULES:**
+1. ALWAYS start with diagram type (mindmap, flowchart, etc.)
+2. Use 2-space indentation
+3. NO tabs
+4. Close ALL parentheses
+5. Test code is valid before responding
+6. Keep it SIMPLE - max 10 nodes
+7. Add SHORT explanation AFTER code block (1-2 sentences)
 
-RULES:
-- Start with diagram type keyword
-- Use proper indentation
-- Test syntax is valid
-- Keep it simple
-- Add brief explanation AFTER code block
+RESPOND FORMAT:
+\`\`\`mermaid
+[code]
+\`\`\`
 
-Respond with diagram code first, then explanation.`;
+Brief explanation.`;
   }
 
   return `You are Hyperfocus AI, an AI assistant designed specifically to help neurodivergent individuals maximize their concentration and learning. 
@@ -306,7 +320,7 @@ Respond ONLY with JSON array (no \`\`\`, no markdown):`;
       },
     ];
 
-    const response = await sendChatCompletion(messages, 'anthropic/claude-3.7-haiku-20250219');
+    const response = await sendChatCompletion(messages, 'anthropic/claude-3-haiku');
     
     // Try to extract JSON from response
     const jsonMatch = response.match(/\[[\s\S]*\]/);

@@ -48,43 +48,60 @@ export default function Message({ message, fontStyle, onOpenDiagram }: MessagePr
     }
   }, [message.id, message.role]); // Only depend on message id/role, NOT on settings
 
-  // Load or analyze semantic chunks
+  // Load or analyze semantic chunks (ONLY ONCE per message)
   useEffect(() => {
     if (message.role === 'assistant' && effectiveChunking && message.content && !message.mermaidCode) {
-      // If chunks already exist in message, use them (persistence)
+      // If chunks already exist in message, use them (ALWAYS - don't re-analyze)
       if (message.semanticChunks && message.semanticChunks.length > 0) {
         setChunks(message.semanticChunks);
         setIsAnalyzing(false);
         return;
       }
 
-      // Otherwise, analyze and save
-      setIsAnalyzing(true);
-      analyzeSemanticChunks(message.content)
-        .then(analyzedChunks => {
-          setChunks(analyzedChunks);
-          // Save chunks to message in storage
-          const chats = storage.getChats();
-          const chat = chats.find(c => c.messages.some(m => m.id === message.id));
-          if (chat) {
-            const msg = chat.messages.find(m => m.id === message.id);
-            if (msg) {
-              msg.semanticChunks = analyzedChunks;
-              storage.saveChat(chat);
+      // Only analyze if we haven't started yet (prevents re-runs)
+      if (chunks.length === 0 && !isAnalyzing) {
+        setIsAnalyzing(true);
+        analyzeSemanticChunks(message.content)
+          .then(analyzedChunks => {
+            setChunks(analyzedChunks);
+            // Save chunks to message in storage IMMEDIATELY
+            const chats = storage.getChats();
+            const chat = chats.find(c => c.messages.some(m => m.id === message.id));
+            if (chat) {
+              const msg = chat.messages.find(m => m.id === message.id);
+              if (msg) {
+                msg.semanticChunks = analyzedChunks;
+                storage.saveChat(chat);
+                console.log('✅ Chunks saved for message:', message.id);
+              }
             }
-          }
-        })
-        .catch(error => {
-          console.error('Error analyzing chunks:', error);
-          // Fallback: treat entire message as explanation
-          setChunks([{
-            type: 'explanation',
-            content: message.content,
-          }]);
-        })
-        .finally(() => {
-          setIsAnalyzing(false);
-        });
+          })
+          .catch(error => {
+            console.error('Error analyzing chunks:', error);
+            // Fallback: treat entire message as explanation
+            const fallbackChunks = [{
+              type: 'explanation' as const,
+              content: message.content,
+            }];
+            setChunks(fallbackChunks);
+            // Save fallback too
+            const chats = storage.getChats();
+            const chat = chats.find(c => c.messages.some(m => m.id === message.id));
+            if (chat) {
+              const msg = chat.messages.find(m => m.id === message.id);
+              if (msg) {
+                msg.semanticChunks = fallbackChunks;
+                storage.saveChat(chat);
+              }
+            }
+          })
+          .finally(() => {
+            setIsAnalyzing(false);
+          });
+      }
+    } else if (!effectiveChunking) {
+      // If chunking is OFF, clear chunks
+      setChunks([]);
     }
   }, [message.id, message.role, message.content, message.semanticChunks, effectiveChunking]);
 
