@@ -8,6 +8,9 @@ import DiagramSidePanel from './components/diagrams/DiagramSidePanel';
 import { useChat } from './hooks/useChat';
 import { useHyperfocus } from './hooks/useHyperfocus';
 import { cleanupMermaidErrors } from './lib/mermaid-config';
+import { sendChatCompletion, getSystemPrompt } from './lib/openrouter';
+import { extractContent } from './lib/utils';
+import { storage } from './lib/storage';
 
 export default function App() {
   const [showSettings, setShowSettings] = useState(true); // Settings abierto por defecto
@@ -85,22 +88,65 @@ export default function App() {
   const handleEditDiagram = async (instruction: string) => {
     if (!diagramPanel.messageId || !currentChat) return;
 
-    const editMessage = `EDIT DIAGRAM REQUEST: ${instruction}
+    try {
+      // Create edit prompt
+      const editPrompt = `EDIT DIAGRAM: ${instruction}
 
 Current diagram:
 \`\`\`mermaid
 ${diagramPanel.code}
 \`\`\`
 
-RESPOND WITH ONLY:
-\`\`\`mermaid
-[updated code]
-\`\`\`
+RULES:
+1. Keep same diagram type
+2. Apply ONLY requested change
+3. Respond with VALID Mermaid code ONLY
+4. Wrap in \`\`\`mermaid code block
+5. NO explanations`;
 
-NO TEXT BEFORE OR AFTER THE CODE BLOCK.`;
-    
-    await sendMessage(editMessage);
-    setDiagramPanel({ ...diagramPanel, isOpen: false }); // Close panel to see new response
+      // Call API directly WITHOUT saving to chat (use selected model)
+      const apiResponse = await sendChatCompletion([
+        { role: 'system', content: getSystemPrompt(true) },
+        { role: 'user', content: editPrompt }
+      ], selectedModel);
+
+      // Extract new Mermaid code
+      const { mermaidCode } = extractContent(apiResponse);
+
+      if (mermaidCode) {
+        // Get all chats and find current one
+        const allChats = storage.getChats();
+        const chatToUpdate = allChats.find(c => c.id === currentChat.id);
+        
+        if (chatToUpdate) {
+          // Update the specific message with new Mermaid code
+          const updatedChat = {
+            ...chatToUpdate,
+            messages: chatToUpdate.messages.map(msg =>
+              msg.id === diagramPanel.messageId
+                ? { ...msg, mermaidCode }
+                : msg
+            ),
+            updatedAt: Date.now(),
+          };
+
+          // Save to storage
+          storage.saveChat(updatedChat);
+
+          // Update diagram panel with new code (triggers auto-render)
+          setDiagramPanel({
+            ...diagramPanel,
+            code: mermaidCode,
+          });
+          
+          // Force page reload to reflect changes
+          window.location.reload();
+        }
+      }
+    } catch (error) {
+      console.error('Error editing diagram:', error);
+      alert('Error editing diagram. Please try again.');
+    }
   };
 
   return (

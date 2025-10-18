@@ -17,7 +17,8 @@ interface MessageProps {
 export default function Message({ message, fontStyle, onOpenDiagram }: MessageProps) {
   // Use applied settings if they exist (stable mode), otherwise use current settings
   const currentSettings = storage.getSettings();
-  const effectiveFontStyle = message.appliedFontStyle || fontStyle;
+  // CRITICAL: Use !== undefined to properly check frozen settings (not ||)
+  const effectiveFontStyle = message.appliedFontStyle !== undefined ? message.appliedFontStyle : fontStyle;
   const effectiveChunking = message.appliedChunking !== undefined ? message.appliedChunking : currentSettings.semanticChunking;
   
   const { fontClass } = useFastReading('', effectiveFontStyle);
