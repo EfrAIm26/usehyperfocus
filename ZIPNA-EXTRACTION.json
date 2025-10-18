@@ -1,0 +1,532 @@
+{
+  "project": {
+    "name": "Zipna",
+    "description": "AI-powered diagram generator with Mermaid.js integration",
+    "version": "0.0.0",
+    "tech_stack": [
+      "React 19.1.1",
+      "TypeScript",
+      "Vite 7.1.7",
+      "Tailwind CSS 4.1.14",
+      "Zustand 5.0.8",
+      "Supabase 2.74.0",
+      "Mermaid.js 11.12.0",
+      "OpenRouter API"
+    ]
+  },
+  "mindmap_components": {
+    "file_locations": {
+      "main_renderer": "src/components/diagram/MermaidRenderer.tsx",
+      "welcome_screen": "src/components/chat/WelcomeScreen.tsx",
+      "message_list": "src/components/chat/MessageList.tsx",
+      "markdown_renderer": "src/components/chat/MarkdownMessage.tsx"
+    },
+    "dependencies": [
+      "mermaid: ^11.12.0",
+      "react: ^19.1.1",
+      "react-markdown: ^10.1.0",
+      "remark-gfm: ^4.0.1",
+      "rehype-raw: ^7.0.0",
+      "lucide-react: ^0.544.0"
+    ],
+    "main_functions": {
+      "mermaid_renderer": {
+        "purpose": "Renders Mermaid diagrams with View/Code tabs",
+        "key_features": [
+          "Real-time diagram rendering",
+          "Editable code editor",
+          "Zoom controls (in/out/reset)",
+          "Download PNG/SVG",
+          "Error handling with inline messages",
+          "Unique ID generation for each render"
+        ]
+      },
+      "welcome_screen": {
+        "purpose": "Landing page with clickable diagram examples",
+        "categories": [
+          "Mindmap (4 examples)",
+          "Flowchart (4 examples)", 
+          "Quadrant (4 examples)",
+          "Pie (4 examples)",
+          "Sankey (4 examples)"
+        ]
+      },
+      "markdown_message": {
+        "purpose": "Renders AI responses with ChatGPT-style formatting",
+        "features": [
+          "Left-aligned text",
+          "Paragraph separators",
+          "JetBrains Mono font for code",
+          "Styled headings, lists, links",
+          "Code syntax highlighting"
+        ]
+      }
+    }
+  },
+  "mermaid_logic": {
+    "code_generation": {
+      "ai_integration": {
+        "file": "src/lib/openrouter.ts",
+        "intention_detection": {
+          "diagram_keywords": [
+            "diagrama", "esquema", "diseño", "modelo", "estructura",
+            "visualiza", "dibuja", "grafica", "mermaid", "secuencia",
+            "clase", "entidad", "relación", "mindmap", "mental",
+            "gantt", "timeline", "pie", "chart", "quadrant",
+            "sankey", "flow", "income", "statement", "matrix",
+            "reach", "engagement", "ethnicity", "revolution"
+          ],
+          "text_keywords": [
+            "explica", "qué es", "cómo funciona", "define", "responde",
+            "dime", "cuéntame", "escribe", "redacta", "ayúdame", "necesito saber"
+          ]
+        },
+        "system_prompt": "You are an expert at creating Mermaid diagrams. When users request diagrams, respond with valid Mermaid code in ```mermaid blocks followed by explanations. Support flowchart, sequenceDiagram, classDiagram, stateDiagram, erDiagram, journey, gantt, pie, mindmap, quadrant, and sankey diagrams."
+      },
+      "mock_responses": {
+        "file": "src/lib/mockOpenRouter.ts",
+        "predefined_diagrams": [
+          "Pizza making process flowchart",
+          "User authentication flowchart", 
+          "Order processing flowchart",
+          "Generic process flowchart"
+        ]
+      }
+    },
+    "code_extraction": {
+      "file": "src/lib/utils.ts",
+      "function": "extractContent",
+      "logic": [
+        "Regex: /```mermaid\\s*([\\s\\S]*?)```/i",
+        "Direct detection for flowchart, sequenceDiagram, etc.",
+        "Separates Mermaid code from explanation text",
+        "Returns { mermaidCode: string | null, explanation: string }"
+      ]
+    },
+    "rendering": {
+      "initialization": {
+        "location": "MermaidRenderer.tsx lines 9-20",
+        "config": {
+          "startOnLoad": false,
+          "theme": "default",
+          "securityLevel": "loose",
+          "fontFamily": "system-ui, -apple-system, sans-serif",
+          "flowchart": {
+            "useMaxWidth": true,
+            "htmlLabels": true,
+            "curve": "basis"
+          }
+        }
+      },
+      "render_process": [
+        "Generate unique ID: mermaid-${Date.now()}-${random}",
+        "Clear container HTML",
+        "Call mermaid.render(id, code)",
+        "Insert SVG into container",
+        "Apply zoom transform",
+        "Handle errors with inline display"
+      ]
+    },
+    "saving": {
+      "database_structure": {
+        "messages": {
+          "id": "string",
+          "chat_id": "string", 
+          "role": "user | assistant",
+          "content": "string",
+          "mermaid_code": "string | null",
+          "created_at": "timestamp"
+        },
+        "diagrams": {
+          "id": "string",
+          "chat_id": "string",
+          "message_id": "string",
+          "mermaid_code": "string",
+          "title": "string",
+          "created_at": "timestamp"
+        }
+      },
+      "store_management": {
+        "file": "src/store/chatStore.ts",
+        "state": "currentDiagram: string | null",
+        "actions": [
+          "setCurrentDiagram(diagram)",
+          "saveMessage(chatId, role, content, mermaidCode)",
+          "saveDiagram(chatId, messageId, code, title)"
+        ]
+      }
+    }
+  },
+  "diagram_ui": {
+    "visual_components": {
+      "mermaid_renderer": {
+        "tabs": {
+          "view_tab": {
+            "content": "Rendered SVG diagram",
+            "controls": ["Zoom In", "Zoom Out", "Reset", "Download PNG", "Download SVG"],
+            "styling": "bg-gray-50, centered container, zoom transform"
+          },
+          "code_tab": {
+            "content": "Editable textarea with Mermaid code",
+            "controls": ["Cancel", "Apply & View"],
+            "styling": "bg-gray-900 text-gray-100, JetBrains Mono font"
+          }
+        },
+        "tab_styling": {
+          "active": "bg-blue-500 text-white",
+          "inactive": "bg-white text-gray-700 border border-gray-300"
+        }
+      },
+      "welcome_screen": {
+        "layout": "Centered, vertical distribution",
+        "logo": "/favicon-zipna.ico.png (64x64)",
+        "title": "How can I help you? (gradient text)",
+        "categories": "Horizontal tabs with images",
+        "examples": "2x5 grid of clickable buttons"
+      },
+      "message_display": {
+        "user_messages": {
+          "background": "bg-blue-50 border border-blue-200",
+          "hover_effect": "shadow-[0_0_12px_rgba(59,130,246,0.25)]",
+          "border_radius": "rounded-2xl",
+          "padding": "px-6 py-3"
+        },
+        "ai_messages": {
+          "background": "bg-transparent",
+          "padding": "px-6 py-3",
+          "markdown": "Left-aligned, paragraph separators",
+          "font": "JetBrains Mono for code blocks"
+        }
+      }
+    },
+    "css_styles": {
+      "gradients": [
+        "Logo: from-cyan-400 via-blue-500 to-purple-500",
+        "Category selection: from-yellow-400 via-orange-400 to-cyan-400",
+        "Example buttons: from-white to-gray-50 hover:from-blue-50 hover:to-purple-50"
+      ],
+      "shadows": [
+        "Category glow: shadow-[0_0_20px_rgba(250,204,21,0.4)]",
+        "Button hover: shadow-[0_0_15px_rgba(59,130,246,0.3)]",
+        "Example hover: shadow-lg"
+      ],
+      "transitions": [
+        "All hover effects: transition-all duration-300",
+        "Zoom: transition-transform 0.2s ease-out",
+        "Button states: transition-colors"
+      ]
+    },
+    "view_code_toggle": {
+      "implementation": {
+        "state": "activeTab: 'view' | 'code'",
+        "switch_logic": "setActiveTab(activeTab === 'view' ? 'code' : 'view')",
+        "conditional_rendering": "activeTab === 'view' ? <DiagramView /> : <CodeEditor />"
+      },
+      "code_editor": {
+        "textarea": "value={editableCode}, onChange={setEditableCode}",
+        "apply_function": "setCodeToRender(editableCode); setActiveTab('view')",
+        "cancel_function": "setEditableCode(initialCode)"
+      }
+    }
+  },
+  "ai_integration": {
+    "context_passing": {
+      "file_upload": {
+        "component": "src/components/chat/FileUpload.tsx",
+        "supported_types": ["PDF", "DOCX", "XLSX", "TXT", "MD", "JSON"],
+        "max_size": "10MB",
+        "processing": "Basic text extraction (5000 chars limit)"
+      },
+      "model_selection": {
+        "component": "src/components/chat/ModelSelector.tsx",
+        "available_models": [
+          "auto (GPT-4o Mini)",
+          "openai/gpt-4o-mini",
+          "anthropic/claude-sonnet-4.5", 
+          "x-ai/grok-4-fast",
+          "perplexity/llama-3.1-sonar-large-128k-online",
+          "google/gemini-2.5-flash-lite",
+          "google/gemini-2.5-flash"
+        ],
+        "icons": "@lobehub/icons (OpenAI, Anthropic, Google, XAI, Perplexity)"
+      }
+    },
+    "prompt_format": {
+      "system_prompt": "You are an expert at creating Mermaid diagrams. When users request diagrams, respond with valid Mermaid code in ```mermaid blocks followed by explanations.",
+      "user_message": "Includes attached files content + original message",
+      "model_selection": "Uses getActualModel() to resolve 'auto' to 'openai/gpt-4o-mini'",
+      "intention_detection": "detectIntention() function analyzes keywords"
+    },
+    "response_parsing": {
+      "extraction": {
+        "function": "extractContent() in src/lib/utils.ts",
+        "process": [
+          "1. Search for ```mermaid...``` blocks",
+          "2. Extract code and explanation separately", 
+          "3. Fallback to direct Mermaid detection",
+          "4. Return { mermaidCode, explanation }"
+        ]
+      },
+      "rendering": {
+        "mermaid_code": "Passed to MermaidRenderer component",
+        "explanation": "Rendered with MarkdownMessage component",
+        "storage": "Both saved to Supabase messages table"
+      }
+    }
+  },
+  "database": {
+    "structure": {
+      "projects": {
+        "id": "uuid primary key",
+        "user_id": "uuid foreign key to auth.users",
+        "title": "string",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "chats": {
+        "id": "uuid primary key", 
+        "project_id": "uuid foreign key to projects",
+        "user_id": "uuid foreign key to auth.users",
+        "title": "string (auto-generated from first message)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "messages": {
+        "id": "uuid primary key",
+        "chat_id": "uuid foreign key to chats",
+        "role": "enum('user', 'assistant')",
+        "content": "text",
+        "mermaid_code": "text nullable",
+        "created_at": "timestamp"
+      },
+      "diagrams": {
+        "id": "uuid primary key",
+        "chat_id": "uuid foreign key to chats", 
+        "message_id": "uuid foreign key to messages",
+        "mermaid_code": "text",
+        "title": "string",
+        "created_at": "timestamp"
+      }
+    },
+    "important_queries": {
+      "load_chats": "SELECT * FROM chats WHERE project_id = $1 ORDER BY updated_at DESC",
+      "load_messages": "SELECT * FROM messages WHERE chat_id = $1 ORDER BY created_at ASC",
+      "save_message": "INSERT INTO messages (chat_id, role, content, mermaid_code) VALUES ($1, $2, $3, $4) RETURNING id",
+      "save_diagram": "INSERT INTO diagrams (chat_id, message_id, mermaid_code, title) VALUES ($1, $2, $3, $4)",
+      "create_chat": "INSERT INTO chats (project_id, user_id, title) VALUES ($1, $2, $3) RETURNING id",
+      "delete_chat": "DELETE FROM chats WHERE id = $1",
+      "update_chat_title": "UPDATE chats SET title = $1 WHERE id = $2"
+    },
+    "authentication": {
+      "provider": "Supabase Auth with Google OAuth",
+      "user_management": "Automatic project creation on first login",
+      "session_persistence": "Handled by Supabase client"
+    }
+  },
+  "file_structure": {
+    "components": {
+      "auth": "LoginPage.tsx",
+      "chat": [
+        "ChatContainerV2.tsx",
+        "ChatInput.tsx", 
+        "MessageList.tsx",
+        "MarkdownMessage.tsx",
+        "WelcomeScreen.tsx",
+        "ModelSelector.tsx",
+        "FileUpload.tsx",
+        "CompactModelSelector.tsx",
+        "ChatMenu.tsx"
+      ],
+      "diagram": ["MermaidRenderer.tsx"],
+      "sidebar": ["Sidebar.tsx"]
+    },
+    "lib": [
+      "supabase.ts",
+      "openrouter.ts", 
+      "mockOpenRouter.ts",
+      "aiModels.ts",
+      "utils.ts"
+    ],
+    "store": ["chatStore.ts"],
+    "contexts": ["AuthContext.tsx"],
+    "main": ["AppV2.tsx", "main.tsx"]
+  },
+  "environment_variables": {
+    "required": [
+      "VITE_OPENROUTER_API_KEY",
+      "VITE_SUPABASE_URL", 
+      "VITE_SUPABASE_ANON_KEY"
+    ],
+    "usage": {
+      "openrouter": "API calls to OpenRouter for AI responses",
+      "supabase": "Database operations and authentication"
+    }
+  },
+  "deployment": {
+    "build_command": "pnpm run build",
+    "output_directory": "dist/",
+    "static_files": [
+      "favicon-zipna.ico.png",
+      "mindmap-example.png",
+      "flowchart-example.png", 
+      "quadrant-example.png",
+      "pie-example.png",
+      "sankey-example.png"
+    ],
+    "platform": "Vercel (recommended)",
+    "redirect_urls": [
+      "https://your-app.vercel.app",
+      "https://your-app.vercel.app/*",
+      "http://localhost:5173"
+    ]
+  },
+  "bugs_and_solutions": {
+    "centering_issues": {
+      "title": "WelcomeScreen y LoginPage elementos descentrados",
+      "problem": "Los elementos del WelcomeScreen y LoginPage aparecían pegados a una esquina en lugar de estar centrados perfectamente",
+      "solution": {
+        "welcome_screen": "Agregar contenedor con `h-full min-h-full flex items-center justify-center` en MessageList.tsx para centrar vertical y horizontalmente",
+        "login_page": "Usar `flex flex-col items-center justify-center` en el contenedor principal y ajustar márgenes/padding",
+        "final_fix": "Aplicar `max-w-5xl mx-auto px-6` en WelcomeScreen y centrar todos los elementos con flexbox"
+      },
+      "files_modified": [
+        "src/components/chat/MessageList.tsx",
+        "src/components/auth/LoginPage.tsx", 
+        "src/components/chat/WelcomeScreen.tsx"
+      ]
+    },
+    "mermaid_rendering_bug": {
+      "title": "Mermaid no renderizaba visualmente los diagramas",
+      "problem": "Los diagramas Mermaid no se mostraban visualmente, solo aparecía el código sin renderizar",
+      "solution": {
+        "initialization_fix": "Mover inicialización de Mermaid FUERA del componente (una sola vez al importar)",
+        "unique_id_fix": "Generar ID único en CADA render: `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`",
+        "cleanup_fix": "Agregar flag `isCancelled` y cleanup function para evitar memory leaks",
+        "state_management": "Agregar estado `isRendering` para prevenir renders duplicados"
+      },
+      "code_example": "mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' })"
+    },
+    "markdown_rendering": {
+      "title": "Texto de IA aparecía en markdown crudo sin renderizar",
+      "problem": "Las respuestas de la IA se mostraban como texto plano con sintaxis markdown visible",
+      "solution": {
+        "install_dependencies": "Instalar react-markdown, remark-gfm, rehype-raw",
+        "create_component": "Crear MarkdownMessage.tsx con renderizado completo de markdown",
+        "styling": "Aplicar estilos ChatGPT: left-aligned, separadores entre párrafos, JetBrains Mono para código",
+        "features": "Soporte para negritas, cursivas, listas, código, enlaces, tablas, blockquotes"
+      },
+      "files_created": ["src/components/chat/MarkdownMessage.tsx"]
+    },
+    "model_icons": {
+      "title": "Íconos de modelos de IA usando emojis en lugar de logos oficiales",
+      "problem": "El selector de modelos mostraba emojis genéricos (✨⚡🎯) en lugar de los logos reales de OpenAI, Claude, etc.",
+      "solution": {
+        "install_package": "npm install @lobehub/icons",
+        "import_icons": "import { OpenAI, Anthropic, Perplexity, Google, XAI } from '@lobehub/icons'",
+        "create_mapper": "Función getModelIcon() que mapea cada provider a su logo SVG oficial",
+        "update_components": "Actualizar ModelSelector y CompactModelSelector para usar íconos oficiales"
+      }
+    },
+    "layout_margins": {
+      "title": "Espacios blancos laterales sin usar (aplicación no rectangular)",
+      "problem": "La aplicación tenía márgenes laterales blancos que no se usaban, no aprovechaba todo el ancho de pantalla",
+      "solution": {
+        "remove_containers": "Eliminar `max-w-3xl mx-auto` que limitaba el ancho",
+        "full_width": "Aplicar `w-screen` y `max-w-full` para usar 100% del ancho",
+        "reduce_padding": "Reducir padding de `px-6 py-3` a `px-4 py-2.5`",
+        "optimize_layout": "Split view 45% chat / 55% diagrama sin espacios perdidos"
+      }
+    },
+    "navigation_persistence": {
+      "title": "Chat se reseteaba al cambiar de pestaña del navegador",
+      "problem": "Cuando el usuario cambiaba de pestaña y volvía, perdía el chat donde estaba y regresaba al WelcomeScreen",
+      "solution": {
+        "add_initialization_flag": "Agregar `isInitialized` state para ejecutar lógica solo UNA VEZ",
+        "simplify_dependencies": "Cambiar useEffect dependencies de `[user, loadChats, createChat, ...]` a solo `[user]`",
+        "prevent_reinit": "Solo auto-seleccionar chat si `!currentChatId` para evitar sobrescribir selección actual"
+      },
+      "code_example": "useEffect(() => { if (!user || isInitialized) return; /* logic */ }, [user])"
+    },
+    "view_code_tabs": {
+      "title": "Implementar sistema de pestañas View/Code estilo Claude",
+      "problem": "No había forma de editar el código Mermaid después de generarlo",
+      "solution": {
+        "add_tabs": "Implementar tabs 'View' y 'Code' en MermaidRenderer",
+        "code_editor": "Textarea editable con fondo oscuro y JetBrains Mono",
+        "apply_changes": "Botón 'Apply & View' que actualiza el diagrama y cambia a View",
+        "cancel_changes": "Botón 'Cancel' que descarta cambios y vuelve al código original",
+        "tab_styling": "Pestaña activa azul (bg-blue-500), inactiva blanca con borde"
+      }
+    },
+    "message_formatting": {
+      "title": "Mensajes de chat no se parecían a ChatGPT/Cursor",
+      "problem": "Los mensajes tenían avatares, estaban centrados, y no tenían el estilo profesional",
+      "solution": {
+        "remove_avatars": "Eliminar avatares de User y Bot de los mensajes",
+        "left_alignment": "Cambiar de centrado a `text-left` en MarkdownMessage",
+        "paragraph_separators": "Agregar `border-b border-gray-100 last:border-0` entre párrafos",
+        "user_message_style": "Fondo azul suave (bg-blue-50) con brillo sutil",
+        "ai_message_style": "Fondo transparente, texto limpio sin bordes"
+      }
+    },
+    "typescript_errors": {
+      "title": "Múltiples errores de TypeScript durante desarrollo",
+      "problem": "Variables no usadas, tipos incorrectos, propiedades inexistentes",
+      "solution": {
+        "unused_variables": "Remover imports no usados (LogIn, user, get, explanation, AIModel, firstMessage)",
+        "icon_property": "Cambiar `model.icon` por `getModelIcon(model.provider, 20)`",
+        "inline_property": "Ajustar lógica de componente `code` en MarkdownMessage para manejar `isInline`",
+        "comparison_types": "Corregir comparación de activeTab en MermaidRenderer",
+        "error_state": "Remover estado `error` no usado y usar HTML directo para errores"
+      }
+    },
+    "auto_chat_creation": {
+      "title": "Auto-creación de chat al iniciar sesión",
+      "problem": "Usuario tenía que hacer clic en 'New Chat' manualmente después del login",
+      "solution": {
+        "check_existing_chats": "Verificar si hay chats existentes al inicializar",
+        "auto_create": "Si no hay chats, crear uno automáticamente",
+        "auto_select": "Si hay chats, seleccionar el más reciente automáticamente",
+        "prevent_duplicates": "Solo auto-seleccionar si `!currentChatId` para no sobrescribir"
+      }
+    },
+    "hide_show_button": {
+      "title": "Botón Hide/Show diagrama solo aparecía cuando había diagrama",
+      "problem": "El botón de toggle del panel de diagrama no era consistente",
+      "solution": {
+        "conditional_rendering": "Mostrar botón solo cuando `hasDiagram` es true",
+        "panel_visibility": "Panel visible por defecto con placeholder cuando no hay diagrama",
+        "consistent_ux": "Botón siempre visible cuando hay diagrama, mejor UX predecible"
+      }
+    },
+    "welcome_screen_spacing": {
+      "title": "Logo y título muy abajo en WelcomeScreen",
+      "problem": "El logo y 'How can I help you?' estaban muy abajo, mal distribuidos verticalmente",
+      "solution": {
+        "increase_spacing": "Cambiar `mb-6` a `mb-10` para logo, `mb-16` a `mb-20` para título",
+        "add_padding": "Agregar `pt-16` al container principal",
+        "better_distribution": "Logo arriba, título en medio, categorías abajo, ejemplos al final"
+      }
+    },
+    "file_upload_integration": {
+      "title": "Integración de upload de archivos con AI",
+      "problem": "No había forma de adjuntar archivos para contexto en las conversaciones",
+      "solution": {
+        "create_component": "Crear FileUpload.tsx con drag & drop",
+        "supported_types": "PDF, DOCX, Excel, TXT, Markdown, JSON (hasta 10MB)",
+        "process_content": "Extraer texto de archivos y agregar al contexto del prompt",
+        "ui_integration": "Integrar en footer del chat junto al selector de modelos"
+      }
+    },
+    "model_selector_footer": {
+      "title": "Mover selector de modelos al footer estilo Cursor",
+      "problem": "Selector de modelos estaba en el header ocupando espacio vertical",
+      "solution": {
+        "move_to_footer": "Relocar selector al footer junto al botón de enviar",
+        "compact_design": "Crear CompactModelSelector más pequeño",
+        "dropdown_up": "Dropdown se abre hacia arriba para no cortarse",
+        "space_optimization": "Ahorrar espacio vertical, mejor UX"
+      }
+    }
+  }
+}
