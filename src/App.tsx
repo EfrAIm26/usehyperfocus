@@ -15,26 +15,10 @@ import { extractContent } from './lib/utils';
 import { storage } from './lib/storage';
 
 export default function App() {
-  // Authentication
-  const { user, isLoading: authLoading } = useAuth();
-
-  // Show login if not authenticated
-  if (authLoading) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="flex flex-col items-center gap-4">
-          <img src="/logo_sinfondo.png" alt="Hyperfocus AI" className="h-20 w-20 animate-pulse" />
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-500 rounded-full animate-spin" />
-          <p className="text-gray-600 font-medium">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Login />;
-  }
-  const [showSettings, setShowSettings] = useState(true); // Settings abierto por defecto
+  // ✅ ALL HOOKS AT THE TOP - NO CONDITIONALS!
+  const { user, isLoading: authLoading } = useAuth(); // PRIMERO, antes de todo
+  
+  const [showSettings, setShowSettings] = useState(true);
   const [diagramPanel, setDiagramPanel] = useState<{
     isOpen: boolean;
     code: string;
@@ -45,7 +29,6 @@ export default function App() {
     messageId: null,
   });
 
-  // Chat management
   const {
     chats,
     currentChat,
@@ -60,19 +43,16 @@ export default function App() {
     updateTopic,
   } = useChat();
 
-  // Hyperfocus management
   const { checkFocus, isAnalyzing } = useHyperfocus(currentChat);
 
-  // Clean up Mermaid errors periodically (CRITICAL: keeps UI clean)
   useEffect(() => {
     const interval = setInterval(() => {
       cleanupMermaidErrors();
-    }, 500); // Clean every 500ms
-
+    }, 500);
     return () => clearInterval(interval);
   }, []);
 
-  // Handler for closing diagram panel
+  // ✅ ALL FUNCTIONS AND HANDLERS AT THE TOP
   const handleCloseDiagram = () => {
     setDiagramPanel({
       isOpen: false,
@@ -81,22 +61,14 @@ export default function App() {
     });
   };
 
-  // Close diagram panel when changing chats
-  useEffect(() => {
-    handleCloseDiagram();
-  }, [currentChatId]);
-
-  // Handler for sending messages
   const handleSendMessage = async (content: string) => {
     await sendMessage(content);
   };
 
-  // Handler for creating new chat
   const handleNewChat = () => {
     createNewChat();
   };
 
-  // Handler for opening diagram panel
   const handleOpenDiagram = (code: string, messageId: string) => {
     setDiagramPanel({
       isOpen: true,
@@ -105,8 +77,6 @@ export default function App() {
     });
   };
 
-
-  // Handler for editing diagram with natural language
   const handleEditDiagram = async (instruction: string) => {
     if (!diagramPanel.messageId || !currentChat) return;
 
@@ -154,22 +124,40 @@ RULES:
 
           // Save to storage
           storage.saveChat(updatedChat);
-
-          // Update diagram panel with new code (triggers auto-render)
-          setDiagramPanel({
-            ...diagramPanel,
-            code: mermaidCode,
-          });
           
-          // Force page reload to reflect changes
-          window.location.reload();
+          // Update diagram panel with new code
+          setDiagramPanel(prev => ({
+            ...prev,
+            code: mermaidCode,
+          }));
         }
       }
     } catch (error) {
       console.error('Error editing diagram:', error);
-      alert('Error editing diagram. Please try again.');
     }
   };
+
+  // Close diagram panel when changing chats
+  useEffect(() => {
+    handleCloseDiagram();
+  }, [currentChatId]);
+
+  // ✅ CONDITIONAL RENDERING AFTER ALL HOOKS AND FUNCTIONS
+  if (authLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="flex flex-col items-center gap-4">
+          <img src="/logo_sinfondo.png" alt="Hyperfocus AI" className="h-20 w-20 animate-pulse" />
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-500 rounded-full animate-spin" />
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   return (
     <div className="h-screen w-screen flex flex-col bg-bg-primary overflow-hidden">
