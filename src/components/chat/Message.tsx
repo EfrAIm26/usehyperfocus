@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Message as MessageType, FontStyle, SemanticChunk } from '../../types';
+import type { Message as MessageType, SemanticChunk } from '../../types';
 import { useFastReading } from '../../hooks/useFastReading';
 import SemanticChunkComponent from './SemanticChunk';
 import { analyzeSemanticChunks } from '../../lib/openrouter';
@@ -10,16 +10,14 @@ import { storage } from '../../lib/storage';
 
 interface MessageProps {
   message: MessageType;
-  fontStyle: FontStyle;
   onOpenDiagram: (code: string, messageId: string) => void;
 }
 
-export default function Message({ message, fontStyle, onOpenDiagram }: MessageProps) {
-  // Use applied settings if they exist (stable mode), otherwise use current settings
-  const currentSettings = storage.getSettings();
-  // CRITICAL: Use !== undefined to properly check frozen settings (not ||)
-  const effectiveFontStyle = message.appliedFontStyle !== undefined ? message.appliedFontStyle : fontStyle;
-  const effectiveChunking = message.appliedChunking !== undefined ? message.appliedChunking : currentSettings.semanticChunking;
+export default function Message({ message, onOpenDiagram }: MessageProps) {
+  // CRITICAL: Use ONLY the message's frozen settings (NO fallback to global)
+  // If undefined, it will be frozen to 'normal' in the useEffect below
+  const effectiveFontStyle = message.appliedFontStyle || 'normal';
+  const effectiveChunking = message.appliedChunking !== undefined ? message.appliedChunking : false;
   
   const { fontClass } = useFastReading('', effectiveFontStyle);
   const [chunks, setChunks] = useState<SemanticChunk[]>([]);
@@ -179,7 +177,7 @@ export default function Message({ message, fontStyle, onOpenDiagram }: MessagePr
               components={{
                 // Custom renderers for markdown elements
                 p: ({ children }) => {
-                  if (fontStyle === 'bionic' && typeof children === 'string') {
+                  if (effectiveFontStyle === 'bionic' && typeof children === 'string') {
                     const bionicHtml = applyBionicToString(children);
                     return (
                       <p

@@ -44,7 +44,6 @@ export default function ChatContainer({
   } | null>(null);
 
   const settings = storage.getSettings();
-  const fontStyle = settings.fontStyle;
 
   const handleSendMessage = useCallback(async (message: string) => {
     if (!currentChat) return;
@@ -117,13 +116,12 @@ export default function ChatContainer({
         </div>
       )}
 
-      {/* Messages */}
-      <MessageList
-        messages={currentChat.messages}
-        fontStyle={fontStyle}
-        isLoading={isLoading}
-        onOpenDiagram={onOpenDiagram}
-      />
+          {/* Messages */}
+          <MessageList
+            messages={currentChat.messages}
+            isLoading={isLoading}
+            onOpenDiagram={onOpenDiagram}
+          />
 
       {/* Hyperfocus distraction alert */}
       {showDistractedAlert && distractedData && (

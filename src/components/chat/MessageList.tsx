@@ -1,16 +1,15 @@
 // MessageList component - Scrollable list of messages
 import { useEffect, useRef } from 'react';
-import type { Message as MessageType, FontStyle } from '../../types';
+import type { Message as MessageType } from '../../types';
 import Message from './Message';
 
 interface MessageListProps {
   messages: MessageType[];
-  fontStyle: FontStyle;
   isLoading: boolean;
   onOpenDiagram: (code: string, messageId: string) => void;
 }
 
-export default function MessageList({ messages, fontStyle, isLoading, onOpenDiagram }: MessageListProps) {
+export default function MessageList({ messages, isLoading, onOpenDiagram }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -72,7 +71,6 @@ export default function MessageList({ messages, fontStyle, isLoading, onOpenDiag
         <Message 
           key={message.id} 
           message={message} 
-          fontStyle={fontStyle}
           onOpenDiagram={onOpenDiagram}
         />
       ))}
