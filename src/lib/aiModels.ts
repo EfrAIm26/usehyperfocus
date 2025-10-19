@@ -20,8 +20,8 @@ export const AI_MODELS: AIModel[] = [
     description: 'Fast and powerful multimodal AI',
   },
   {
-    id: 'x-ai/grok-2-1212',
-    name: 'Grok 4 Fast',
+    id: 'x-ai/grok-beta',
+    name: 'Grok Beta',
     provider: 'xai',
     description: 'xAI\'s fast reasoning model',
   },

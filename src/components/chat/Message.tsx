@@ -82,15 +82,19 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
           .then(analyzedChunks => {
             setChunks(analyzedChunks);
             // Save chunks to message in storage IMMEDIATELY
-            const chats = storage.getChats();
-            const chat = chats.find(c => c.messages.some(m => m.id === message.id));
-            if (chat) {
-              const msg = chat.messages.find(m => m.id === message.id);
-              if (msg) {
-                msg.semanticChunks = analyzedChunks;
-                storage.saveChat(chat);
-                console.log('✅ Chunks saved for message:', message.id);
+            try {
+              const chats = storage.getChats();
+              const chat = chats.find(c => c.messages.some(m => m.id === message.id));
+              if (chat) {
+                const msg = chat.messages.find(m => m.id === message.id);
+                if (msg) {
+                  msg.semanticChunks = analyzedChunks;
+                  storage.saveChat(chat);
+                  console.log('✅ Chunks saved for message:', message.id);
+                }
               }
+            } catch (storageError) {
+              console.error('Error saving chunks:', storageError);
             }
           })
           .catch(error => {
@@ -102,14 +106,18 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
             }];
             setChunks(fallbackChunks);
             // Save fallback too
-            const chats = storage.getChats();
-            const chat = chats.find(c => c.messages.some(m => m.id === message.id));
-            if (chat) {
-              const msg = chat.messages.find(m => m.id === message.id);
-              if (msg) {
-                msg.semanticChunks = fallbackChunks;
-                storage.saveChat(chat);
+            try {
+              const chats = storage.getChats();
+              const chat = chats.find(c => c.messages.some(m => m.id === message.id));
+              if (chat) {
+                const msg = chat.messages.find(m => m.id === message.id);
+                if (msg) {
+                  msg.semanticChunks = fallbackChunks;
+                  storage.saveChat(chat);
+                }
               }
+            } catch (storageError) {
+              console.error('Error saving fallback chunks:', storageError);
             }
           })
           .finally(() => {
