@@ -320,7 +320,7 @@ Respond ONLY with JSON array (no \`\`\`, no markdown):`;
       },
     ];
 
-    const response = await sendChatCompletion(messages, 'anthropic/claude-3-haiku');
+        const response = await sendChatCompletion(messages, 'anthropic/claude-haiku-4.5');
     
     // Try to extract JSON from response
     const jsonMatch = response.match(/\[[\s\S]*\]/);

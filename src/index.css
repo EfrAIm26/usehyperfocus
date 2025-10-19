@@ -1,11 +1,10 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap');
 
-/* Load OpenDyslexic font */
+/* Load OpenDyslexic font from reliable CDN */
 @font-face {
   font-family: 'OpenDyslexic';
-  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Regular.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Regular.woff') format('woff');
+  src: url('https://www.dl.dropboxusercontent.com/s/18mu0d3i9xa8lsl/OpenDyslexic-Regular.woff?dl=0') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -13,8 +12,7 @@
 
 @font-face {
   font-family: 'OpenDyslexic';
-  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Bold.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Bold.woff') format('woff');
+  src: url('https://www.dl.dropboxusercontent.com/s/23caizy143eln0y/OpenDyslexic-Bold.woff?dl=0') format('woff');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -86,6 +84,19 @@
   }
   to {
     transform: scale(1);
+  }
+}
+
+/* Custom font utilities */
+@layer utilities {
+  .font-dyslexic {
+    font-family: 'OpenDyslexic', sans-serif !important;
+    letter-spacing: 0.02em;
+    line-height: 1.6;
+  }
+  
+  .font-lexend {
+    font-family: 'Lexend', sans-serif !important;
   }
 }
 

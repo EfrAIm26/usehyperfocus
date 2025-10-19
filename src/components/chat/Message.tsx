@@ -20,7 +20,8 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
   const effectiveChunking = message.appliedChunking !== undefined ? message.appliedChunking : false;
   
   const { fontClass } = useFastReading('', effectiveFontStyle);
-  const [chunks, setChunks] = useState<SemanticChunk[]>([]);
+  // CRITICAL FIX: Load saved chunks immediately on mount to prevent re-analysis
+  const [chunks, setChunks] = useState<SemanticChunk[]>(() => message.semanticChunks || []);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Auto-open diagram panel when mermaidCode exists
@@ -67,16 +68,16 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
 
   // Load or analyze semantic chunks (ONLY ONCE per message)
   useEffect(() => {
-    if (message.role === 'assistant' && effectiveChunking && message.content && !message.mermaidCode) {
-      // If chunks already exist in message, use them (ALWAYS - don't re-analyze)
+    if (message.role === 'assistant' && message.content && !message.mermaidCode) {
+      // CRITICAL FIX: Always load saved chunks first, regardless of effectiveChunking
       if (message.semanticChunks && message.semanticChunks.length > 0) {
         setChunks(message.semanticChunks);
         setIsAnalyzing(false);
-        return;
+        return; // NEVER re-analyze if chunks exist
       }
 
-      // Only analyze if we haven't started yet (prevents re-runs)
-      if (chunks.length === 0 && !isAnalyzing) {
+      // Only analyze if chunking is ON and we haven't analyzed yet
+      if (effectiveChunking && chunks.length === 0 && !isAnalyzing) {
         setIsAnalyzing(true);
         analyzeSemanticChunks(message.content)
           .then(analyzedChunks => {
@@ -124,9 +125,6 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
             setIsAnalyzing(false);
           });
       }
-    } else if (!effectiveChunking) {
-      // If chunking is OFF, clear chunks
-      setChunks([]);
     }
   }, [message.id, message.role, message.content, message.semanticChunks, effectiveChunking]);
 
