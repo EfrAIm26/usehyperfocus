@@ -130,7 +130,7 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
           setIsAnalyzing(false);
         });
     }
-  }, [message.id]); // CRITICAL: Only depend on message.id to prevent re-runs
+  }, []); // CRITICAL: Empty dependency array to run only once on mount
 
   if (message.role === 'user') {
     // User messages also respect frozen font style
