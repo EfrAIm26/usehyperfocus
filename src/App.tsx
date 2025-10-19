@@ -5,14 +5,35 @@ import Sidebar from './components/layout/Sidebar';
 import ChatContainer from './components/chat/ChatContainer';
 import SettingsPanel from './components/settings/SettingsPanel';
 import DiagramSidePanel from './components/diagrams/DiagramSidePanel';
+import Login from './pages/Login';
 import { useChat } from './hooks/useChat';
 import { useHyperfocus } from './hooks/useHyperfocus';
+import { useAuth } from './hooks/useAuth';
 import { cleanupMermaidErrors } from './lib/mermaid-config';
 import { sendChatCompletion, getSystemPrompt } from './lib/openrouter';
 import { extractContent } from './lib/utils';
 import { storage } from './lib/storage';
 
 export default function App() {
+  // Authentication
+  const { user, isLoading: authLoading } = useAuth();
+
+  // Show login if not authenticated
+  if (authLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="flex flex-col items-center gap-4">
+          <img src="/logo_sinfondo.png" alt="Hyperfocus AI" className="h-20 w-20 animate-pulse" />
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-500 rounded-full animate-spin" />
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
   const [showSettings, setShowSettings] = useState(true); // Settings abierto por defecto
   const [diagramPanel, setDiagramPanel] = useState<{
     isOpen: boolean;
@@ -83,6 +104,7 @@ export default function App() {
       messageId,
     });
   };
+
 
   // Handler for editing diagram with natural language
   const handleEditDiagram = async (instruction: string) => {

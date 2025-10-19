@@ -1,5 +1,5 @@
 // Message component - Individual chat message
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Message as MessageType, SemanticChunk } from '../../types';
@@ -15,13 +15,14 @@ interface MessageProps {
 
 export default function Message({ message, onOpenDiagram }: MessageProps) {
   // CRITICAL: Use ONLY the message's frozen settings (NO fallback to global)
-  // If undefined, it will be frozen to 'normal' in the useEffect below
   const effectiveFontStyle = message.appliedFontStyle || 'normal';
   const effectiveChunking = message.appliedChunking !== undefined ? message.appliedChunking : false;
   
   const { fontClass } = useFastReading('', effectiveFontStyle);
-  // CRITICAL FIX: Load saved chunks immediately on mount to prevent re-analysis
-  const [chunks, setChunks] = useState<SemanticChunk[]>(() => message.semanticChunks || []);
+  
+  // CRITICAL FIX: Use ref to track if we've already analyzed this message
+  const hasAnalyzed = useRef(false);
+  const [chunks, setChunks] = useState<SemanticChunk[]>(message.semanticChunks || []);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Auto-open diagram panel when mermaidCode exists
@@ -66,25 +67,27 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
     }
   }, [message.id, message.role]); // Run once per message
 
-  // CRITICAL FIX: Load chunks immediately and NEVER re-analyze
+  // CRITICAL FIX: Analyze chunks ONLY ONCE per message using ref
   useEffect(() => {
-    // Load saved chunks immediately if they exist - this should be the FIRST thing
-    if (message.semanticChunks && message.semanticChunks.length > 0) {
-      console.log('✅ Loading saved chunks for message:', message.id);
-      setChunks(message.semanticChunks);
-      setIsAnalyzing(false);
-      return; // CRITICAL: Exit early if chunks exist
+    // If already analyzed or has saved chunks, skip
+    if (hasAnalyzed.current || (message.semanticChunks && message.semanticChunks.length > 0)) {
+      if (message.semanticChunks && message.semanticChunks.length > 0) {
+        console.log('✅ Loading saved chunks for message:', message.id);
+        setChunks(message.semanticChunks);
+      }
+      return;
     }
 
-    // Only analyze if NO chunks exist and chunking is enabled
+    // Only analyze if this is an assistant message without chunks
     if (message.role === 'assistant' && 
         message.content && 
         !message.mermaidCode && 
-        effectiveChunking && 
-        !message.semanticChunks) { // CRITICAL: PARTE 1: Use message.semanticChunks instead of chunks state
+        effectiveChunking) {
       
+      hasAnalyzed.current = true; // Mark as analyzed IMMEDIATELY
       console.log('🔄 Analyzing chunks for NEW message:', message.id);
       setIsAnalyzing(true);
+      
       analyzeSemanticChunks(message.content)
         .then(analyzedChunks => {
           console.log('✅ Chunks analyzed for message:', message.id);
@@ -113,29 +116,12 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
             content: message.content,
           }];
           setChunks(fallbackChunks);
-          // Save fallback too
-          try {
-            const chats = storage.getChats();
-            const chat = chats.find(c => c.messages.some(m => m.id === message.id));
-            if (chat) {
-              const msg = chat.messages.find(m => m.id === message.id);
-              if (msg) {
-                msg.semanticChunks = fallbackChunks;
-                storage.saveChat(chat);
-              }
-            }
-          } catch (storageError) {
-            console.error('Error saving fallback chunks:', storageError);
-          }
         })
         .finally(() => {
           setIsAnalyzing(false);
         });
-    } else {
-      // If no chunking needed, ensure analyzing is false
-      setIsAnalyzing(false);
     }
-  }, [message.id, message.semanticChunks]); // CRITICAL: PARTE 2: Depend on message.semanticChunks to detect when chunks are saved
+  }, [message.id, message.role, message.content, message.mermaidCode, message.semanticChunks, effectiveChunking]);
 
   if (message.role === 'user') {
     // User messages also respect frozen font style

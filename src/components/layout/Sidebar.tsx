@@ -2,6 +2,7 @@
 import { FiPlus, FiTrash2, FiMessageSquare } from 'react-icons/fi';
 import type { Chat } from '../../types';
 import { formatDate } from '../../lib/utils';
+import UserProfile from './UserProfile';
 
 interface SidebarProps {
   chats: Chat[];
@@ -80,6 +81,11 @@ export default function Sidebar({
             ))}
           </div>
         )}
+      </div>
+
+      {/* User profile at the bottom */}
+      <div className="p-3 border-t border-border bg-white">
+        <UserProfile />
       </div>
     </div>
   );
