@@ -68,24 +68,26 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
 
   // CRITICAL FIX: Load chunks immediately and NEVER re-analyze
   useEffect(() => {
-    // Load saved chunks immediately if they exist
+    // Load saved chunks immediately if they exist - this should be the FIRST thing
     if (message.semanticChunks && message.semanticChunks.length > 0) {
+      console.log('✅ Loading saved chunks for message:', message.id);
       setChunks(message.semanticChunks);
       setIsAnalyzing(false);
-      return;
+      return; // CRITICAL: Exit early if chunks exist
     }
 
-    // Only analyze ONCE for new messages without chunks
+    // Only analyze if NO chunks exist and chunking is enabled
     if (message.role === 'assistant' && 
         message.content && 
         !message.mermaidCode && 
         effectiveChunking && 
-        chunks.length === 0 && 
-        !isAnalyzing) {
+        !message.semanticChunks) { // CRITICAL: PARTE 1: Use message.semanticChunks instead of chunks state
       
+      console.log('🔄 Analyzing chunks for NEW message:', message.id);
       setIsAnalyzing(true);
       analyzeSemanticChunks(message.content)
         .then(analyzedChunks => {
+          console.log('✅ Chunks analyzed for message:', message.id);
           setChunks(analyzedChunks);
           // Save chunks to message in storage IMMEDIATELY
           try {
@@ -129,8 +131,11 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
         .finally(() => {
           setIsAnalyzing(false);
         });
+    } else {
+      // If no chunking needed, ensure analyzing is false
+      setIsAnalyzing(false);
     }
-  }, []); // CRITICAL: Empty dependency array to run only once on mount
+  }, [message.id, message.semanticChunks]); // CRITICAL: PARTE 2: Depend on message.semanticChunks to detect when chunks are saved
 
   if (message.role === 'user') {
     // User messages also respect frozen font style
