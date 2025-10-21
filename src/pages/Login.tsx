@@ -71,12 +71,6 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Bottom decoration */}
-        <div className="flex justify-center gap-2 mt-8">
-          <div className="w-2 h-2 rounded-full bg-blue-400/60 animate-bounce" />
-          <div className="w-2 h-2 rounded-full bg-indigo-400/60 animate-bounce delay-100" />
-          <div className="w-2 h-2 rounded-full bg-purple-400/60 animate-bounce delay-200" />
-        </div>
       </div>
     </div>
   );

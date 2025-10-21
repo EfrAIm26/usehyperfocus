@@ -161,7 +161,9 @@ RULES:
 
   // Close diagram panel when changing chats
   useEffect(() => {
-    handleCloseDiagram();
+    if (diagramPanel.isOpen) {
+      handleCloseDiagram();
+    }
   }, [currentChatId]);
 
   // ✅ CONDITIONAL RENDERING AFTER ALL HOOKS AND FUNCTIONS
