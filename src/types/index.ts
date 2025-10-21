@@ -24,6 +24,44 @@ export interface Chat {
   updatedAt: number;
 }
 
+// Supabase database types
+export interface DbMessage {
+  id: string;
+  chat_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  mermaid_code?: string | null;
+  semantic_chunks?: Array<{
+    type: 'definition' | 'example' | 'action' | 'keypoint' | 'explanation';
+    content: string;
+  }> | null;
+  applied_font_style?: 'bionic' | 'dyslexic' | 'normal' | 'lexend' | null;
+  applied_chunking?: boolean | null;
+  created_at: string;
+}
+
+export interface DbChat {
+  id: string;
+  user_id: string;
+  title: string;
+  topic?: string | null;
+  message_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbUserSettings {
+  id: string;
+  user_id: string;
+  font_style: 'bionic' | 'dyslexic' | 'normal' | 'lexend';
+  focus_mode: 'default' | 'hyperfocus';
+  semantic_chunking: boolean;
+  min_messages_before_topic_change: number;
+  topic_similarity_threshold: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface HyperfocusState {
   currentTopic: string | null;
   isDistracted: boolean;

@@ -20,9 +20,14 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   }, [isOpen]);
 
   // Auto-save on change
-  const handleFocusModeChange = (mode: Settings['focusMode']) => {
+  const handleFocusModeChange = async (mode: Settings['focusMode']) => {
     setFocusMode(mode);
-    storage.updateSettings({ focusMode: mode });
+    try {
+      await storage.updateSettings({ focusMode: mode });
+      console.log('✅ Focus mode saved to Supabase:', mode);
+    } catch (error) {
+      console.error('❌ Error saving focus mode:', error);
+    }
   };
 
   return (

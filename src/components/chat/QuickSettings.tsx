@@ -33,16 +33,26 @@ export default function QuickSettings() {
     }
   }, [isOpen]);
 
-  const handleStyleChange = (style: Settings['fontStyle']) => {
+  const handleStyleChange = async (style: Settings['fontStyle']) => {
     const newSettings = { ...settings, fontStyle: style };
     setSettings(newSettings);
-    storage.updateSettings(newSettings);
+    try {
+      await storage.updateSettings({ fontStyle: style });
+      console.log('✅ Font style saved to Supabase:', style);
+    } catch (error) {
+      console.error('❌ Error saving font style:', error);
+    }
   };
 
-  const handleChunkingChange = (enabled: boolean) => {
+  const handleChunkingChange = async (enabled: boolean) => {
     const newSettings = { ...settings, semanticChunking: enabled };
     setSettings(newSettings);
-    storage.updateSettings(newSettings);
+    try {
+      await storage.updateSettings({ semanticChunking: enabled });
+      console.log('✅ Semantic chunking saved to Supabase:', enabled);
+    } catch (error) {
+      console.error('❌ Error saving semantic chunking:', error);
+    }
   };
 
   return (

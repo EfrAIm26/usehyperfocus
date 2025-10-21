@@ -13,6 +13,8 @@ import { cleanupMermaidErrors } from './lib/mermaid-config';
 import { sendChatCompletion, getSystemPrompt } from './lib/openrouter';
 import { extractContent } from './lib/utils';
 import { storage } from './lib/storage';
+import { autoMigration } from './lib/autoMigration';
+import { diagnostic } from './lib/diagnostic';
 
 export default function App() {
   // ✅ ALL HOOKS AT THE TOP - NO CONDITIONALS!
@@ -52,6 +54,26 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Initialize storage cache and run auto-migration when user is authenticated
+  useEffect(() => {
+    if (user) {
+      console.log('🔄 User authenticated, initializing storage...');
+      
+      // Initialize storage and run migration in parallel for speed
+      Promise.all([
+        storage.reinitialize(),
+        autoMigration.runOnAuth(),
+        diagnostic.runFullDiagnostic()
+      ]).then(([, , results]) => {
+        if (!results.connection || !results.auth || !results.tables) {
+          console.error('❌ CRITICAL: Supabase setup issues detected!');
+        } else {
+          console.log('✅ All systems ready');
+        }
+      }).catch(console.error);
+    }
+  }, [user]);
+
   // ✅ ALL FUNCTIONS AND HANDLERS AT THE TOP
   const handleCloseDiagram = () => {
     setDiagramPanel({
@@ -65,8 +87,8 @@ export default function App() {
     await sendMessage(content);
   };
 
-  const handleNewChat = () => {
-    createNewChat();
+  const handleNewChat = async () => {
+    await createNewChat();
   };
 
   const handleOpenDiagram = (code: string, messageId: string) => {

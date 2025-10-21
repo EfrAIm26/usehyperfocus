@@ -1,30 +1,51 @@
 // Custom hook for managing chat functionality
 import { useState, useCallback, useEffect } from 'react';
 import type { Chat, Message } from '../types';
-import { storage } from '../lib/storage';
+import { storage, onStorageReady } from '../lib/storage';
 import { generateId, generateTitle, extractContent } from '../lib/utils';
 import { sendChatCompletion, getSystemPrompt, detectDiagramIntent } from '../lib/openrouter';
 import { DEFAULT_MODEL } from '../lib/aiModels';
+import { useAuth } from './useAuth';
 
 export function useChat() {
+  const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
 
-  // Load chats from storage on mount
+  // Load chats from storage when user changes
   useEffect(() => {
-    const storedChats = storage.getChats();
-    const storedCurrentId = storage.getCurrentChatId();
-    setChats(storedChats);
-    setCurrentChatId(storedCurrentId);
-  }, []);
+    if (user) {
+      const loadChats = () => {
+        const storedChats = storage.getChats();
+        const storedCurrentId = storage.getCurrentChatId();
+        console.log(`🔄 Loading chats from storage: ${storedChats.length} chats found`);
+        setChats(storedChats);
+        setCurrentChatId(storedCurrentId);
+      };
+
+      // Subscribe to storage ready events
+      const unsubscribe = onStorageReady(loadChats);
+      
+      // Also try to load immediately (in case storage is already ready)
+      loadChats();
+      
+      return () => {
+        unsubscribe();
+      };
+    } else {
+      // Clear chats when user logs out
+      setChats([]);
+      setCurrentChatId(null);
+    }
+  }, [user]);
 
   // Get current chat
   const currentChat = chats.find(chat => chat.id === currentChatId);
 
   // Create a new chat
-  const createNewChat = useCallback(() => {
+  const createNewChat = useCallback(async () => {
     const newChat: Chat = {
       id: generateId(),
       title: 'New Chat',
@@ -35,8 +56,13 @@ export function useChat() {
       updatedAt: Date.now(),
     };
 
-    storage.saveChat(newChat);
-    storage.setCurrentChatId(newChat.id);
+    try {
+      await storage.saveChat(newChat);
+      await storage.setCurrentChatId(newChat.id);
+      console.log('✅ New chat created and saved to Supabase:', newChat.id);
+    } catch (error) {
+      console.error('❌ Error creating chat:', error);
+    }
     
     setChats(prev => [newChat, ...prev]);
     setCurrentChatId(newChat.id);
@@ -45,14 +71,25 @@ export function useChat() {
   }, []);
 
   // Select a chat
-  const selectChat = useCallback((chatId: string) => {
-    storage.setCurrentChatId(chatId);
+  const selectChat = useCallback(async (chatId: string) => {
+    try {
+      await storage.setCurrentChatId(chatId);
+      console.log('✅ Chat selected and saved to Supabase:', chatId);
+    } catch (error) {
+      console.error('❌ Error selecting chat:', error);
+    }
     setCurrentChatId(chatId);
   }, []);
 
   // Delete a chat
-  const deleteChat = useCallback((chatId: string) => {
-    storage.deleteChat(chatId);
+  const deleteChat = useCallback(async (chatId: string) => {
+    try {
+      await storage.deleteChat(chatId);
+      console.log('✅ Chat deleted from Supabase:', chatId);
+    } catch (error) {
+      console.error('❌ Error deleting chat:', error);
+    }
+    
     setChats(prev => prev.filter(c => c.id !== chatId));
     
     if (currentChatId === chatId) {
@@ -95,7 +132,8 @@ export function useChat() {
 
       // Update state and storage
       setChats(prev => prev.map(c => c.id === currentChat.id ? updatedChat : c));
-      storage.saveChat(updatedChat);
+      await storage.saveChat(updatedChat);
+      console.log('✅ User message saved to Supabase');
 
       // Prepare messages for AI
       const isDiagramRequest = detectDiagramIntent(content);
@@ -136,7 +174,8 @@ export function useChat() {
 
       // Update state and storage
       setChats(prev => prev.map(c => c.id === currentChat.id ? finalChat : c));
-      storage.saveChat(finalChat);
+      await storage.saveChat(finalChat);
+      console.log('✅ Assistant message saved to Supabase');
 
       return assistantMessage;
     } catch (error) {
@@ -159,7 +198,8 @@ export function useChat() {
       };
 
       setChats(prev => prev.map(c => c.id === currentChat.id ? errorChat : c));
-      storage.saveChat(errorChat);
+      await storage.saveChat(errorChat);
+      console.log('✅ Error message saved to Supabase');
 
       return null;
     } finally {
@@ -168,11 +208,15 @@ export function useChat() {
   }, [currentChat]);
 
   // Update chat topic
-  const updateTopic = useCallback((chatId: string, topic: string) => {
+  const updateTopic = useCallback(async (chatId: string, topic: string) => {
     setChats(prev => prev.map(chat => {
       if (chat.id === chatId) {
         const updated = { ...chat, topic };
-        storage.saveChat(updated);
+        storage.saveChat(updated).then(() => {
+          console.log('✅ Topic updated and saved to Supabase:', topic);
+        }).catch(error => {
+          console.error('❌ Error saving topic:', error);
+        });
         return updated;
       }
       return chat;
