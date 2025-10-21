@@ -4,9 +4,9 @@ import type { Chat, Settings } from '../types';
 const STORAGE_KEY = 'hyperfocus-ai-data';
 
 const DEFAULT_SETTINGS: Settings = {
-  fontStyle: 'bionic',
+  fontStyle: 'normal',
   focusMode: 'hyperfocus',
-  semanticChunking: true,
+  semanticChunking: false,
   minMessagesBeforeTopicChange: 5,
   topicSimilarityThreshold: 60,
 };
