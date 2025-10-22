@@ -69,7 +69,7 @@ export default function Login() {
           <p className="text-center text-sm text-gray-500 mt-8">
             Built for neurodivergent minds to maximize concentration and learning
           </p>
-          {/* Force deployment update */}
+          {/* Force deployment after Vercel reconnection */}
         </div>
 
       </div>
