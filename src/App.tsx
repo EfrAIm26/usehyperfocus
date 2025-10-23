@@ -17,6 +17,7 @@ import { storage } from './lib/storage';
 import { autoMigration } from './lib/autoMigration';
 import { diagnostic } from './lib/diagnostic';
 import './lib/oauth-diagnostic';
+import './lib/test-oauth';
 
 export default function App() {
   // ✅ ALL HOOKS AT THE TOP - NO CONDITIONALS!
