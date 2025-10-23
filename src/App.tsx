@@ -6,6 +6,7 @@ import ChatContainer from './components/chat/ChatContainer';
 import SettingsPanel from './components/settings/SettingsPanel';
 import DiagramSidePanel from './components/diagrams/DiagramSidePanel';
 import Login from './pages/Login';
+import OAuthError from './components/OAuthError';
 import { useChat } from './hooks/useChat';
 import { useHyperfocus } from './hooks/useHyperfocus';
 import { useAuth } from './hooks/useAuth';
@@ -15,6 +16,7 @@ import { extractContent } from './lib/utils';
 import { storage } from './lib/storage';
 import { autoMigration } from './lib/autoMigration';
 import { diagnostic } from './lib/diagnostic';
+import './lib/oauth-diagnostic';
 
 export default function App() {
   // ✅ ALL HOOKS AT THE TOP - NO CONDITIONALS!
@@ -181,6 +183,15 @@ RULES:
         </div>
       </div>
     );
+  }
+
+  // Check for OAuth errors
+  const urlParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const hasOAuthError = urlParams.get('error') || hashParams.get('error');
+
+  if (hasOAuthError) {
+    return <OAuthError />;
   }
 
   if (!user) {
