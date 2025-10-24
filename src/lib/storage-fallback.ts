@@ -5,10 +5,12 @@ const STORAGE_KEY = 'hyperfocus-ai-data';
 
 const DEFAULT_SETTINGS: Settings = {
   fontStyle: 'normal',
-  focusMode: 'hyperfocus',
+  focusMode: 'default',
   semanticChunking: false,
   minMessagesBeforeTopicChange: 5,
   topicSimilarityThreshold: 60,
+  focusTask: null,
+  timerDuration: null,
 };
 
 interface StorageSchema {

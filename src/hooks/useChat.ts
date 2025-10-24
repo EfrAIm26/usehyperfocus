@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { Chat, Message } from '../types';
 import { storage, onStorageReady } from '../lib/storage';
 import { generateId, generateTitle, extractContent } from '../lib/utils';
-import { sendChatCompletion, getSystemPrompt, detectDiagramIntent } from '../lib/openrouter';
+import { sendChatCompletion, getSystemPrompt, detectDiagramIntent, checkTaskRelevance } from '../lib/openrouter';
 import { DEFAULT_MODEL } from '../lib/aiModels';
 import { useAuth } from './useAuth';
 
@@ -112,6 +112,14 @@ export function useChat() {
       // Get current settings and FREEZE them for this message
       const currentSettings = storage.getSettings();
       
+      // Check if message is a distraction (Hyperfocus mode only)
+      let isDistraction = false;
+      if (currentSettings.focusMode === 'hyperfocus' && currentSettings.focusTask) {
+        const relevanceCheck = await checkTaskRelevance(content, currentSettings.focusTask);
+        isDistraction = !relevanceCheck.isRelevant;
+        console.log(`🎯 Hyperfocus check: ${isDistraction ? 'DISTRACTION' : 'ON-TASK'} (confidence: ${relevanceCheck.confidence}%)`);
+      }
+      
       // Create user message with FROZEN settings
       const userMessage: Message = {
         id: generateId(),
@@ -120,6 +128,7 @@ export function useChat() {
         timestamp: Date.now(),
         appliedFontStyle: currentSettings.fontStyle, // FROZEN at creation
         appliedChunking: currentSettings.semanticChunking, // FROZEN at creation
+        isDistraction, // Flag if message is off-topic
       };
 
       // Update chat with user message

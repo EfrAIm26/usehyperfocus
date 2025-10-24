@@ -11,6 +11,7 @@ export interface Message {
   }> | null;
   appliedFontStyle?: 'bionic' | 'dyslexic' | 'normal' | 'lexend'; // Settings frozen at render time
   appliedChunking?: boolean;
+  isDistraction?: boolean; // Flag for hyperfocus mode: true if message is off-topic
   timestamp: number;
 }
 
@@ -64,9 +65,13 @@ export interface DbUserSettings {
 
 export interface HyperfocusState {
   currentTopic: string | null;
+  focusTask: string | null; // The specific task user wants to focus on
   isDistracted: boolean;
   messageCount: number;
   topicConfidence: number; // 0-100 percentage
+  timerDuration: number | null; // Duration in minutes (null if no timer)
+  timerStartTime: number | null; // Timestamp when timer started
+  timerActive: boolean; // Whether timer is currently running
 }
 
 export interface Settings {
@@ -75,6 +80,8 @@ export interface Settings {
   semanticChunking: boolean; // Enable/disable color-coded semantic sections
   minMessagesBeforeTopicChange: number; // Minimum messages before allowing topic change (kept for backward compatibility)
   topicSimilarityThreshold: number; // Percentage threshold for topic similarity (0-100) (kept for backward compatibility)
+  focusTask?: string | null; // Task to focus on in hyperfocus mode
+  timerDuration?: number | null; // Pomodoro timer duration in minutes
 }
 
 export interface StorageSchema {

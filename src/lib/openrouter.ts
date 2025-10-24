@@ -353,3 +353,62 @@ Respond ONLY with JSON array (no \`\`\`, no markdown):`;
   }
 }
 
+/**
+ * Check if user message is related to the focus task (Hyperfocus mode)
+ * Returns true if message is ON-TOPIC, false if it's a DISTRACTION
+ */
+export async function checkTaskRelevance(
+  userMessage: string,
+  focusTask: string
+): Promise<{ isRelevant: boolean; confidence: number }> {
+  try {
+    const prompt = `You are helping a user stay focused on their task. Analyze if the user's message is related to their focus task.
+
+FOCUS TASK: "${focusTask}"
+
+USER MESSAGE: "${userMessage}"
+
+Determine if the message is:
+- RELEVANT (ON-TOPIC): Directly related to the focus task, asking questions about it, working on it, or discussing related concepts
+- DISTRACTION (OFF-TOPIC): Completely unrelated, about different topics, or trying to change subject
+
+Respond ONLY with JSON (no markdown, no backticks):
+{
+  "isRelevant": true/false,
+  "confidence": 0-100,
+  "reason": "brief explanation"
+}`;
+
+    const messages: Message[] = [
+      {
+        role: 'system',
+        content: 'You are a focus assistant. Analyze if messages are related to the user\'s task. Respond ONLY with JSON.',
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ];
+
+    const response = await sendChatCompletion(messages, 'anthropic/claude-haiku-4.5');
+    
+    // Extract JSON from response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('No JSON in relevance check response:', response);
+      return { isRelevant: true, confidence: 50 }; // Default to allowing message
+    }
+    
+    const result = JSON.parse(jsonMatch[0]);
+    
+    return {
+      isRelevant: result.isRelevant ?? true,
+      confidence: result.confidence ?? 50,
+    };
+  } catch (error) {
+    console.error('Error checking task relevance:', error);
+    // On error, default to allowing the message (don't block user)
+    return { isRelevant: true, confidence: 50 };
+  }
+}
+

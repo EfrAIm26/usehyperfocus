@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { storage } from '../../lib/storage';
 import type { Settings } from '../../types';
+import HyperfocusSetup from './HyperfocusSetup';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -11,11 +12,16 @@ interface SettingsPanelProps {
 
 export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [focusMode, setFocusMode] = useState<Settings['focusMode']>(storage.getSettings().focusMode);
+  const [focusTask, setFocusTask] = useState<string | null>(storage.getSettings().focusTask || null);
+  const [timerDuration, setTimerDuration] = useState<number | null>(storage.getSettings().timerDuration || null);
 
   // Reload when opened
   useEffect(() => {
     if (isOpen) {
-      setFocusMode(storage.getSettings().focusMode);
+      const settings = storage.getSettings();
+      setFocusMode(settings.focusMode);
+      setFocusTask(settings.focusTask || null);
+      setTimerDuration(settings.timerDuration || null);
     }
   }, [isOpen]);
 
@@ -27,6 +33,36 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       console.log('✅ Focus mode saved to Supabase:', mode);
     } catch (error) {
       console.error('❌ Error saving focus mode:', error);
+    }
+  };
+
+  const handleTaskChange = async (task: string) => {
+    setFocusTask(task);
+    try {
+      await storage.updateSettings({ focusTask: task });
+      console.log('✅ Focus task saved to Supabase:', task);
+    } catch (error) {
+      console.error('❌ Error saving focus task:', error);
+    }
+  };
+
+  const handleTimerStart = async (duration: number) => {
+    setTimerDuration(duration);
+    try {
+      await storage.updateSettings({ timerDuration: duration });
+      console.log('✅ Timer duration saved to Supabase:', duration);
+    } catch (error) {
+      console.error('❌ Error saving timer duration:', error);
+    }
+  };
+
+  const handleTimerStop = async () => {
+    setTimerDuration(null);
+    try {
+      await storage.updateSettings({ timerDuration: null });
+      console.log('✅ Timer stopped and saved to Supabase');
+    } catch (error) {
+      console.error('❌ Error stopping timer:', error);
     }
   };
 
@@ -92,6 +128,19 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   </div>
                 </label>
               </div>
+
+              {/* Hyperfocus Setup (show only when hyperfocus mode is selected) */}
+              {focusMode === 'hyperfocus' && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <HyperfocusSetup
+                    focusTask={focusTask}
+                    timerDuration={timerDuration}
+                    onTaskChange={handleTaskChange}
+                    onTimerStart={handleTimerStart}
+                    onTimerStop={handleTimerStop}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

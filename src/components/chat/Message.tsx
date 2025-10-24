@@ -134,6 +134,25 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
     return (
       <div className="px-6 py-4 bg-blue-50 border-b border-blue-100 hover:shadow-[0_0_12px_rgba(59,130,246,0.15)] transition-shadow">
         <div className="max-w-4xl">
+          {/* Distraction Warning Banner (shown if user message is off-topic) */}
+          {message.isDistraction && (
+            <div className="mb-4 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-400 rounded-lg p-3 shadow-md">
+              <div className="flex items-start gap-2">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                    <span className="text-white text-lg font-bold">!</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-red-900 font-bold text-xs mb-0.5">⚠️ Possible Distraction</h4>
+                  <p className="text-red-800 text-xs">
+                    This question seems off-topic. Stay focused on your task!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <p className={`text-text-primary whitespace-pre-wrap ${userFontClass}`}>
             {message.content}
           </p>
