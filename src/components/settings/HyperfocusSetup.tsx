@@ -1,6 +1,6 @@
 // Hyperfocus Setup Component - Task and Timer configuration
-import React, { useState, useEffect } from 'react';
-import { FiTarget, FiClock, FiPlay, FiPause, FiX } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiTarget, FiClock, FiX } from 'react-icons/fi';
 
 interface HyperfocusSetupProps {
   focusTask: string | null;

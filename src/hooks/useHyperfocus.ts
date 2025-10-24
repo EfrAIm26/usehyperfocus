@@ -7,9 +7,13 @@ import { analyzeTopic, extractTopic } from '../lib/openrouter';
 export function useHyperfocus(currentChat: Chat | undefined) {
   const [hyperfocusState, setHyperfocusState] = useState<HyperfocusState>({
     currentTopic: null,
+    focusTask: null,
     isDistracted: false,
     messageCount: 0,
     topicConfidence: 100,
+    timerDuration: null,
+    timerStartTime: null,
+    timerActive: false,
   });
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -20,12 +24,16 @@ export function useHyperfocus(currentChat: Chat | undefined) {
     if (currentChat) {
       setHyperfocusState({
         currentTopic: currentChat.topic,
+        focusTask: settings.focusTask || null,
         isDistracted: false,
         messageCount: currentChat.messageCount,
         topicConfidence: 100,
+        timerDuration: settings.timerDuration || null,
+        timerStartTime: null,
+        timerActive: false,
       });
     }
-  }, [currentChat?.id]);
+  }, [currentChat?.id, settings.focusTask, settings.timerDuration]);
 
   /**
    * Check if a new message stays on topic
