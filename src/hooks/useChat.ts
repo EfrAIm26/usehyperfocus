@@ -114,10 +114,23 @@ export function useChat() {
       
       // Check if message is a distraction (Hyperfocus mode only)
       let isDistraction = false;
+      console.log('🔍 Checking distraction:', {
+        focusMode: currentSettings.focusMode,
+        focusTask: currentSettings.focusTask,
+        willCheck: currentSettings.focusMode === 'hyperfocus' && !!currentSettings.focusTask
+      });
+      
       if (currentSettings.focusMode === 'hyperfocus' && currentSettings.focusTask) {
-        const relevanceCheck = await checkTaskRelevance(content, currentSettings.focusTask);
-        isDistraction = !relevanceCheck.isRelevant;
-        console.log(`🎯 Hyperfocus check: ${isDistraction ? 'DISTRACTION' : 'ON-TASK'} (confidence: ${relevanceCheck.confidence}%)`);
+        console.log(`🎯 Running AI distraction check for task: "${currentSettings.focusTask}"`);
+        try {
+          const relevanceCheck = await checkTaskRelevance(content, currentSettings.focusTask);
+          isDistraction = !relevanceCheck.isRelevant;
+          console.log(`🎯 Result: ${isDistraction ? '❌ DISTRACTION' : '✅ ON-TASK'} (confidence: ${relevanceCheck.confidence}%)`);
+        } catch (error) {
+          console.error('❌ Error in distraction check:', error);
+        }
+      } else {
+        console.log('⏭️ Skipping distraction check (not in hyperfocus mode or no task set)');
       }
       
       // Create user message with FROZEN settings

@@ -19,7 +19,6 @@ const PRESET_DURATIONS = [
 
 export default function HyperfocusSetup({
   focusTask,
-  timerDuration,
   onTaskChange,
   onTimerStart,
   onTimerStop,
@@ -27,16 +26,10 @@ export default function HyperfocusSetup({
   const [task, setTask] = useState(focusTask || '');
   const [showCustomTime, setShowCustomTime] = useState(false);
   const [customMinutes, setCustomMinutes] = useState('');
+  const [customUnit, setCustomUnit] = useState<'minutes' | 'hours'>('minutes');
+  const [selectedDuration, setSelectedDuration] = useState<number | null>(null); // Duration selected but not started
   const [timerActive, setTimerActive] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
-
-  // Initialize timer if duration is set
-  useEffect(() => {
-    if (timerDuration && !timerActive) {
-      setTimeRemaining(timerDuration * 60); // Convert to seconds
-      setTimerActive(true);
-    }
-  }, [timerDuration]);
 
   // Timer countdown
   useEffect(() => {
@@ -63,26 +56,42 @@ export default function HyperfocusSetup({
   };
 
   const handlePresetTimer = (minutes: number) => {
-    setTimeRemaining(minutes * 60);
-    setTimerActive(true);
-    onTimerStart(minutes);
+    setSelectedDuration(minutes);
+    setShowCustomTime(false);
   };
 
   const handleCustomTimer = () => {
-    const minutes = parseInt(customMinutes);
-    if (minutes > 0 && minutes <= 240) { // Max 4 hours
-      setTimeRemaining(minutes * 60);
+    const value = parseInt(customMinutes);
+    if (value > 0) {
+      const minutes = customUnit === 'hours' ? value * 60 : value;
+      if (minutes <= 480) { // Max 8 hours
+        setSelectedDuration(minutes);
+        setShowCustomTime(false);
+        setCustomMinutes('');
+      }
+    }
+  };
+
+  const handleStartTimer = () => {
+    if (selectedDuration) {
+      setTimeRemaining(selectedDuration * 60); // Convert to seconds
       setTimerActive(true);
-      setShowCustomTime(false);
-      setCustomMinutes('');
-      onTimerStart(minutes);
+      onTimerStart(selectedDuration);
     }
   };
 
   const handleStopTimer = () => {
     setTimerActive(false);
     setTimeRemaining(null);
+    setSelectedDuration(null);
     onTimerStop();
+  };
+
+  const handleRestartTimer = () => {
+    if (selectedDuration) {
+      setTimeRemaining(selectedDuration * 60);
+      setTimerActive(true);
+    }
   };
 
   const formatTime = (seconds: number): string => {
@@ -127,7 +136,7 @@ export default function HyperfocusSetup({
         {timerActive && timeRemaining !== null ? (
           /* Active Timer Display */
           <div className="bg-gradient-to-r from-primary/10 to-purple-50 border-2 border-primary rounded-lg p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div>
                 <div className="text-3xl font-bold text-primary">{formatTime(timeRemaining)}</div>
                 <div className="text-xs text-gray-600 mt-1">Time remaining</div>
@@ -140,13 +149,45 @@ export default function HyperfocusSetup({
                 <FiX className="w-5 h-5 text-red-600" />
               </button>
             </div>
-            <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
               <div
                 className="h-full bg-primary transition-all duration-1000"
                 style={{
-                  width: `${timerDuration ? ((timerDuration * 60 - timeRemaining) / (timerDuration * 60)) * 100 : 0}%`,
+                  width: `${selectedDuration ? ((selectedDuration * 60 - timeRemaining) / (selectedDuration * 60)) * 100 : 0}%`,
                 }}
               />
+            </div>
+            <button
+              onClick={handleRestartTimer}
+              className="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              🔄 Restart
+            </button>
+          </div>
+        ) : selectedDuration ? (
+          /* Timer Selected - Ready to Start */
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg p-4">
+            <div className="text-center mb-3">
+              <div className="text-2xl font-bold text-blue-600">
+                {selectedDuration >= 60 
+                  ? `${Math.floor(selectedDuration / 60)}h ${selectedDuration % 60 > 0 ? `${selectedDuration % 60}m` : ''}`.trim()
+                  : `${selectedDuration} min`}
+              </div>
+              <div className="text-xs text-gray-600 mt-1">Selected duration</div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleStartTimer}
+                className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+              >
+                ▶️ Start
+              </button>
+              <button
+                onClick={() => setSelectedDuration(null)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         ) : (
@@ -172,32 +213,44 @@ export default function HyperfocusSetup({
                 + Custom time
               </button>
             ) : (
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={customMinutes}
-                  onChange={(e) => setCustomMinutes(e.target.value)}
-                  placeholder="Minutes"
-                  min="1"
-                  max="240"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                />
-                <button
-                  onClick={handleCustomTimer}
-                  disabled={!customMinutes || parseInt(customMinutes) <= 0}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                >
-                  Start
-                </button>
-                <button
-                  onClick={() => {
-                    setShowCustomTime(false);
-                    setCustomMinutes('');
-                  }}
-                  className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={customMinutes}
+                    onChange={(e) => setCustomMinutes(e.target.value)}
+                    placeholder="Enter time"
+                    min="1"
+                    max="480"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  />
+                  <select
+                    value={customUnit}
+                    onChange={(e) => setCustomUnit(e.target.value as 'minutes' | 'hours')}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  >
+                    <option value="minutes">Minutes</option>
+                    <option value="hours">Hours</option>
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCustomTimer}
+                    disabled={!customMinutes || parseInt(customMinutes) <= 0}
+                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    Select
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCustomTime(false);
+                      setCustomMinutes('');
+                    }}
+                    className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>
