@@ -390,9 +390,9 @@ Respond ONLY with JSON (no markdown, no backticks):
       },
     ];
 
-    // Use Gemini Flash for fast and reliable distraction detection
-    console.log('🤖 Calling Gemini Flash for distraction check...');
-    const response = await sendChatCompletion(messages, 'google/gemini-1.5-flash');
+    // Use Gemini 2.5 Flash for fast and reliable distraction detection
+    console.log('🤖 Calling Gemini 2.5 Flash for distraction check...');
+    const response = await sendChatCompletion(messages, 'google/gemini-2.5-flash');
     console.log('🤖 Gemini response:', response);
     
     // Extract JSON from response
