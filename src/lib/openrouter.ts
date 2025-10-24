@@ -390,23 +390,27 @@ Respond ONLY with JSON (no markdown, no backticks):
       },
     ];
 
-    const response = await sendChatCompletion(messages, 'anthropic/claude-haiku-4.5');
+    // Use Gemini Flash for fast and reliable distraction detection
+    console.log('🤖 Calling Gemini Flash for distraction check...');
+    const response = await sendChatCompletion(messages, 'google/gemini-1.5-flash');
+    console.log('🤖 Gemini response:', response);
     
     // Extract JSON from response
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('No JSON in relevance check response:', response);
+      console.error('❌ No JSON in relevance check response:', response);
       return { isRelevant: true, confidence: 50 }; // Default to allowing message
     }
     
     const result = JSON.parse(jsonMatch[0]);
+    console.log('✅ Parsed result:', result);
     
     return {
       isRelevant: result.isRelevant ?? true,
       confidence: result.confidence ?? 50,
     };
   } catch (error) {
-    console.error('Error checking task relevance:', error);
+    console.error('❌ Error checking task relevance:', error);
     // On error, default to allowing the message (don't block user)
     return { isRelevant: true, confidence: 50 };
   }

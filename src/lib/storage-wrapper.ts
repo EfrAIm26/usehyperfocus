@@ -158,11 +158,13 @@ export const storage = {
   getSettings(): Settings {
     if (!isInitialized || !cachedSettings) {
       return {
-        fontStyle: 'bionic',
-        focusMode: 'hyperfocus',
-        semanticChunking: true,
+        fontStyle: 'normal',
+        focusMode: 'default',
+        semanticChunking: false,
         minMessagesBeforeTopicChange: 5,
         topicSimilarityThreshold: 60,
+        focusTask: null,
+        timerDuration: null,
       };
     }
     return cachedSettings;
@@ -179,14 +181,17 @@ export const storage = {
         cachedSettings = { ...cachedSettings, ...settings };
       } else {
         cachedSettings = {
-          fontStyle: 'bionic',
-          focusMode: 'hyperfocus',
-          semanticChunking: true,
+          fontStyle: 'normal',
+          focusMode: 'default',
+          semanticChunking: false,
           minMessagesBeforeTopicChange: 5,
           topicSimilarityThreshold: 60,
+          focusTask: null,
+          timerDuration: null,
           ...settings,
         };
       }
+      console.log('✅ Cache updated with new settings:', cachedSettings);
     } catch (error) {
       console.error('❌ Supabase updateSettings failed, using localStorage fallback:', error);
       
@@ -198,14 +203,17 @@ export const storage = {
         cachedSettings = { ...cachedSettings, ...settings };
       } else {
         cachedSettings = {
-          fontStyle: 'bionic',
-          focusMode: 'hyperfocus',
-          semanticChunking: true,
+          fontStyle: 'normal',
+          focusMode: 'default',
+          semanticChunking: false,
           minMessagesBeforeTopicChange: 5,
           topicSimilarityThreshold: 60,
+          focusTask: null,
+          timerDuration: null,
           ...settings,
         };
       }
+      console.log('✅ Cache updated with new settings (fallback):', cachedSettings);
     }
   },
 
