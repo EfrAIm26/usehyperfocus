@@ -1,4 +1,5 @@
 // Sidebar component - Chat history and new chat button
+import React from 'react';
 import { FiPlus, FiTrash2, FiMessageSquare } from 'react-icons/fi';
 import type { Chat } from '../../types';
 import { formatDate } from '../../lib/utils';
@@ -19,16 +20,30 @@ export default function Sidebar({
   onSelectChat,
   onDeleteChat,
 }: SidebarProps) {
+  const [isCreating, setIsCreating] = React.useState(false);
+
+  const handleNewChat = async () => {
+    if (isCreating) return; // Prevent double click
+    
+    setIsCreating(true);
+    try {
+      await onNewChat();
+    } finally {
+      setTimeout(() => setIsCreating(false), 500); // Reset after 500ms
+    }
+  };
+
   return (
     <div className="w-60 border-r border-border bg-bg-secondary flex flex-col h-full">
       {/* New Chat button */}
       <div className="p-4 border-b border-border">
         <button
-          onClick={onNewChat}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+          onClick={handleNewChat}
+          disabled={isCreating}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FiPlus className="w-5 h-5" />
-          New Chat
+          {isCreating ? 'Creating...' : 'New Chat'}
         </button>
       </div>
 
