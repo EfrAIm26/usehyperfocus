@@ -196,7 +196,8 @@ export function useChat() {
 
       // Prepare messages for AI
       const isDiagramRequest = detectDiagramIntent(content);
-      const systemPrompt = getSystemPrompt(isDiagramRequest);
+      const hasDataContext = content.includes('[Data file uploaded:');
+      const systemPrompt = getSystemPrompt(isDiagramRequest, hasDataContext);
       
       const apiMessages = [
         { role: 'system' as const, content: systemPrompt },

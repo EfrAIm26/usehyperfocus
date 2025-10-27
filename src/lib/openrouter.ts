@@ -92,7 +92,57 @@ export function detectDiagramIntent(userMessage: string): boolean {
 /**
  * Get system prompt based on user intent
  */
-export function getSystemPrompt(isDiagramRequest: boolean): string {
+export function getSystemPrompt(isDiagramRequest: boolean, hasDataContext: boolean = false): string {
+  if (isDiagramRequest && hasDataContext) {
+    return `You are a data visualization expert creating Mermaid diagrams from pre-analyzed data.
+
+🎯 CRITICAL INSTRUCTIONS:
+
+The user has already processed and counted the data for you. You will receive:
+1. ✅ Category names with their counts already calculated
+2. ✅ Percentages already computed
+3. ✅ Clean, ready-to-use numbers
+
+YOUR ONLY JOB:
+- Take the provided counts and create a Mermaid diagram
+- DO NOT recalculate or recount anything
+- USE THE EXACT NUMBERS PROVIDED
+- Create ONE single diagram with ALL categories
+
+📊 For PIE CHARTS (most common):
+
+\`\`\`mermaid
+pie showData
+    title [Descriptive Title]
+    "[Category 1]" : [exact count from data]
+    "[Category 2]" : [exact count from data]
+    "[Category 3]" : [exact count from data]
+\`\`\`
+
+✅ CORRECT Example:
+User provides: ADHD: 6, Autism: 1, AuDHD: 2, Neurotypical: 3
+
+\`\`\`mermaid
+pie showData
+    title Neurodivergence Distribution
+    "ADHD" : 6
+    "Autism" : 1
+    "AuDHD" : 2
+    "Neurotypical" : 3
+\`\`\`
+
+❌ WRONG: Don't make up new numbers, don't skip categories, don't recalculate
+
+🔧 MERMAID SYNTAX RULES:
+- Start with "pie showData" for pie charts
+- Use double quotes for category names
+- Use the EXACT counts provided
+- Add a descriptive title
+- NO extra text inside code blocks
+
+Always include a brief explanation (1-2 lines) before the diagram code.`;
+  }
+  
   if (isDiagramRequest) {
     return `You are a Mermaid diagram expert. Generate ONLY valid, tested Mermaid code.
 
