@@ -17,12 +17,40 @@ export function useChat() {
   // Load chats from storage when user changes
   useEffect(() => {
     if (user) {
-      const loadChats = () => {
+      const loadChats = async () => {
         const storedChats = storage.getChats();
         const storedCurrentId = storage.getCurrentChatId();
         console.log(`🔄 Loading chats from storage: ${storedChats.length} chats found`);
+        
         setChats(storedChats);
         setCurrentChatId(storedCurrentId);
+        
+        // If no chats exist, automatically create a new one
+        if (storedChats.length === 0) {
+          console.log('📝 No chats found, creating first chat automatically...');
+          const firstChat: Chat = {
+            id: generateId(),
+            title: 'New Chat',
+            messages: [],
+            topic: null,
+            messageCount: 0,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          };
+          
+          try {
+            await storage.saveChat(firstChat);
+            await storage.setCurrentChatId(firstChat.id);
+            console.log('✅ First chat created automatically:', firstChat.id);
+            
+            // Reload from storage
+            const updatedChats = storage.getChats();
+            setChats(updatedChats);
+            setCurrentChatId(firstChat.id);
+          } catch (error) {
+            console.error('❌ Error creating first chat:', error);
+          }
+        }
       };
 
       // Subscribe to storage ready events
