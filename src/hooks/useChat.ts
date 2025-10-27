@@ -1,5 +1,5 @@
 // Custom hook for managing chat functionality
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Chat, Message } from '../types';
 import { storage, onStorageReady } from '../lib/storage';
 import { generateId, generateTitle, extractContent } from '../lib/utils';
@@ -13,6 +13,7 @@ export function useChat() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
+  const hasCreatedInitialChat = useRef(false); // Track if we've created the first chat
 
   // Load chats from storage when user changes
   useEffect(() => {
@@ -25,8 +26,9 @@ export function useChat() {
         setChats(storedChats);
         setCurrentChatId(storedCurrentId);
         
-        // If no chats exist, automatically create a new one
-        if (storedChats.length === 0) {
+        // If no chats exist AND we haven't created one yet, automatically create a new one
+        if (storedChats.length === 0 && !hasCreatedInitialChat.current) {
+          hasCreatedInitialChat.current = true; // Mark as created to prevent duplicates
           console.log('📝 No chats found, creating first chat automatically...');
           const firstChat: Chat = {
             id: generateId(),
@@ -49,6 +51,7 @@ export function useChat() {
             setCurrentChatId(firstChat.id);
           } catch (error) {
             console.error('❌ Error creating first chat:', error);
+            hasCreatedInitialChat.current = false; // Reset on error so it can retry
           }
         }
       };
@@ -66,6 +69,7 @@ export function useChat() {
       // Clear chats when user logs out
       setChats([]);
       setCurrentChatId(null);
+      hasCreatedInitialChat.current = false; // Reset when user logs out
     }
   }, [user]);
 
