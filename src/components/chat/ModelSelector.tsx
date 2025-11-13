@@ -23,6 +23,9 @@ const getModelIcon = (provider: string, size: number = 20) => {
       return <XAI {...props} />;
     case 'perplexity':
       return <Perplexity {...props} />;
+    case 'moonshot':
+      // Using a moon emoji for Moonshot AI
+      return <span style={{ fontSize: size, lineHeight: 1 }}>🌙</span>;
     default:
       return null;
   }

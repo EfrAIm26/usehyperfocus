@@ -2,16 +2,28 @@
 export interface AIModel {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'xai' | 'perplexity';
+  provider: 'openai' | 'anthropic' | 'google' | 'xai' | 'perplexity' | 'moonshot';
   description: string;
 }
 
 export const AI_MODELS: AIModel[] = [
   {
+    id: 'openai/gpt-5',
+    name: 'GPT-5',
+    provider: 'openai',
+    description: 'Latest and most advanced OpenAI model',
+  },
+  {
     id: 'openai/gpt-4o-mini',
     name: 'GPT-4o Mini',
     provider: 'openai',
     description: 'Fast and efficient GPT-4 optimized model',
+  },
+  {
+    id: 'moonshot/kimi-2-thinking',
+    name: 'Kimi 2 Thinking',
+    provider: 'moonshot',
+    description: 'Advanced reasoning with 256K context',
   },
   {
     id: 'google/gemini-2.5-flash',
@@ -20,25 +32,25 @@ export const AI_MODELS: AIModel[] = [
     description: 'Fast and powerful multimodal AI',
   },
   {
-    id: 'x-ai/grok-beta',
-    name: 'Grok Beta',
+    id: 'x-ai/grok-4-fast',
+    name: 'Grok 4 fast',
     provider: 'xai',
     description: 'xAI\'s fast reasoning model',
   },
   {
-    id: 'anthropic/claude-sonnet-4-20250514',
+    id: 'anthropic/claude-sonnet-4.5',
     name: 'Claude Sonnet 4.5',
     provider: 'anthropic',
     description: 'Powerful and balanced AI',
   },
   {
-    id: 'anthropic/claude-3-haiku',
-    name: 'Claude Haiku',
+    id: 'anthropic/claude-haiku-4.5',
+    name: 'Claude Haiku 4.5',
     provider: 'anthropic',
     description: 'Fast and efficient Claude model',
   },
   {
-    id: 'perplexity/llama-3.1-sonar-large-128k-online',
+    id: 'perplexity/sonar-deep-research',
     name: 'Sonar Deep Research',
     provider: 'perplexity',
     description: 'Research-focused with web access',

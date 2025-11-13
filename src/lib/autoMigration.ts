@@ -1,4 +1,4 @@
-// Auto-migration system - runs silently in background when user authenticates
+// Auto-migration system - runs silently in background when user authenticate
 import { storage } from './storage-supabase';
 import type { Chat, Settings } from '../types';
 
