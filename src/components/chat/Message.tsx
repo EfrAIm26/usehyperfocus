@@ -197,16 +197,35 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
               components={{
                 // Custom renderers for markdown elements
                 p: ({ children }) => {
-                  if (effectiveFontStyle === 'bionic' && typeof children === 'string') {
-                    const bionicHtml = applyBionicToString(children);
-                    return (
-                      <p
-                        className="mb-3 text-left leading-relaxed"
-                        dangerouslySetInnerHTML={bionicHtml}
-                      />
-                    );
+                  if (effectiveFontStyle === 'bionic') {
+                    const textContent = extractTextFromChildren(children);
+                    if (textContent) {
+                      const bionicHtml = applyBionicToString(textContent);
+                      return (
+                        <p
+                          className="mb-3 text-left leading-relaxed"
+                          dangerouslySetInnerHTML={bionicHtml}
+                        />
+                      );
+                    }
                   }
                   return <p className="mb-3 text-left leading-relaxed">{children}</p>;
+                },
+                
+                li: ({ children }) => {
+                  if (effectiveFontStyle === 'bionic') {
+                    const textContent = extractTextFromChildren(children);
+                    if (textContent) {
+                      const bionicHtml = applyBionicToString(textContent);
+                      return (
+                        <li
+                          className="mb-1"
+                          dangerouslySetInnerHTML={bionicHtml}
+                        />
+                      );
+                    }
+                  }
+                  return <li className="mb-1">{children}</li>;
                 },
                 
                 strong: ({ children }) => (
@@ -223,10 +242,6 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
                 
                 ol: ({ children }) => (
                   <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>
-                ),
-                
-                li: ({ children }) => (
-                  <li className="text-left">{children}</li>
                 ),
                 
                 code: ({ className, children }: any) => {
@@ -289,8 +304,29 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
   );
 }
 
+// Helper function to extract text from React children (handles nested components)
+function extractTextFromChildren(children: any): string {
+  if (typeof children === 'string') {
+    return children;
+  }
+  
+  if (Array.isArray(children)) {
+    return children.map(extractTextFromChildren).join('');
+  }
+  
+  if (children && typeof children === 'object' && children.props && children.props.children) {
+    return extractTextFromChildren(children.props.children);
+  }
+  
+  return '';
+}
+
 // Helper function to apply bionic reading to a string
 function applyBionicToString(text: string): { __html: string } {
+  if (!text || text.trim() === '') {
+    return { __html: text };
+  }
+  
   const words = text.split(/(\s+)/);
   
   const processedWords = words.map(word => {

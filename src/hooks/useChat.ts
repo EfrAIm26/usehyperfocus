@@ -93,10 +93,15 @@ export function useChat() {
       await storage.setCurrentChatId(newChat.id);
       console.log('✅ New chat created and saved to Supabase:', newChat.id);
       
-      // Reload chats from storage to ensure consistency
-      const updatedChats = storage.getChats();
-      setChats(updatedChats);
+      // Insert new chat at the BEGINNING (most recent first)
+      setChats(prev => [newChat, ...prev]);
       setCurrentChatId(newChat.id);
+      
+      // Reload from storage in background to sync (after cache updates)
+      setTimeout(() => {
+        const updatedChats = storage.getChats();
+        setChats(updatedChats);
+      }, 1000);
     } catch (error) {
       console.error('❌ Error creating chat:', error);
       // Fallback: update local state if storage fails
