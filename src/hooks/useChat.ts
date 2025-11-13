@@ -244,13 +244,34 @@ export function useChat() {
 
       return assistantMessage;
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        selectedModel,
+        messageLength: content.length
+      });
       
-      // Create error message with FROZEN settings
+      // Create error message with FROZEN settings and helpful debug info
+      let errorContent = 'Sorry, I encountered an error while processing your message. Please try again.';
+      
+      // Add more specific error info for debugging
+      if (error instanceof Error) {
+        if (error.message.includes('API key')) {
+          errorContent = 'API key error. Please check your configuration.';
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('network')) {
+          errorContent = 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('rate limit')) {
+          errorContent = 'Rate limit exceeded. Please wait a moment and try again.';
+        } else if (error.message.includes('model')) {
+          errorContent = `Model error with ${selectedModel}. Try selecting a different model.`;
+        }
+      }
+      
       const errorMessage: Message = {
         id: generateId(),
         role: 'assistant',
-        content: 'Sorry, I encountered an error while processing your message. Please try again.',
+        content: errorContent,
         timestamp: Date.now(),
         appliedFontStyle: storage.getSettings().fontStyle, // FROZEN at creation
         appliedChunking: storage.getSettings().semanticChunking, // FROZEN at creation
@@ -263,14 +284,20 @@ export function useChat() {
       };
 
       setChats(prev => prev.map(c => c.id === currentChat.id ? errorChat : c));
-      await storage.saveChat(errorChat);
-      console.log('✅ Error message saved to Supabase');
+      
+      // Try to save error state, but don't fail if storage is broken
+      try {
+        await storage.saveChat(errorChat);
+        console.log('✅ Error message saved to Supabase');
+      } catch (storageError) {
+        console.error('❌ Failed to save error message:', storageError);
+      }
 
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [currentChat]);
+  }, [currentChat, selectedModel]);
 
   // Update chat topic
   const updateTopic = useCallback(async (chatId: string, topic: string) => {

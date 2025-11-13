@@ -8,8 +8,8 @@ export interface AIModel {
 
 export const AI_MODELS: AIModel[] = [
   {
-    id: 'openai/gpt-5',
-    name: 'GPT-5',
+    id: 'openai/gpt-4o',
+    name: 'GPT-4o',
     provider: 'openai',
     description: 'Latest and most advanced OpenAI model',
   },
@@ -20,8 +20,8 @@ export const AI_MODELS: AIModel[] = [
     description: 'Fast and efficient GPT-4 optimized model',
   },
   {
-    id: 'moonshot/kimi-2-thinking',
-    name: 'Kimi 2 Thinking',
+    id: 'deepseek/deepseek-r1',
+    name: 'DeepSeek R1',
     provider: 'moonshot',
     description: 'Advanced reasoning with 256K context',
   },
