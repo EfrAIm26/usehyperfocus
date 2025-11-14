@@ -20,6 +20,8 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
   const [isRendering, setIsRendering] = useState(false);
   const [showEditBox, setShowEditBox] = useState(false);
 
+  console.log('🟣 DiagramSidePanel rendered - isOpen:', isOpen);
+
   // Update code when prop changes
   useEffect(() => {
     setCodeToRender(code);
@@ -152,10 +154,16 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
           <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
             <h3 className="font-semibold text-gray-900">Diagram</h3>
             <button
-              onClick={onClose}
+              onClick={(e) => {
+                console.log('🔴 CLOSE BUTTON CLICKED!', e);
+                e.stopPropagation();
+                onClose();
+              }}
               className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
               title="Close diagram panel"
               aria-label="Close diagram panel"
+              onMouseEnter={() => console.log('🟢 Mouse entered close button')}
+              onMouseLeave={() => console.log('🟡 Mouse left close button')}
             >
               <FiX className="w-5 h-5 text-gray-600" />
             </button>

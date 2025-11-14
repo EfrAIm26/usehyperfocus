@@ -79,11 +79,13 @@ export default function App() {
 
   // ✅ ALL FUNCTIONS AND HANDLERS AT THE TOP
   const handleCloseDiagram = () => {
+    console.log('🔵 handleCloseDiagram called! Current state:', diagramPanel);
     setDiagramPanel({
       isOpen: false,
       code: '',
       messageId: null,
     });
+    console.log('🔵 State updated to close diagram panel');
   };
 
   const handleSendMessage = async (content: string) => {

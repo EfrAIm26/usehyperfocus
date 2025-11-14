@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagram Panel Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .diagram-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      background: white;
+      border-left: 1px solid #e5e7eb;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+      transition: all 300ms ease-in-out;
+      z-index: 30;
+      overflow: hidden;
+    }
+    
+    .diagram-panel.open {
+      width: 800px;
+    }
+    
+    .diagram-panel.closed {
+      width: 0;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Diagram Panel Close Button Test</h1>
+    <button 
+      id="openBtn"
+      class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+    >
+      Open Diagram Panel
+    </button>
+    <div class="mt-4 p-4 bg-white rounded shadow">
+      <h2 class="font-semibold mb-2">Status:</h2>
+      <p id="status" class="text-gray-700">Panel is closed</p>
+    </div>
+  </div>
+
+  <!-- Diagram Panel -->
+  <div id="diagramPanel" class="diagram-panel closed">
+    <div class="flex flex-col h-full">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+        <h3 class="font-semibold text-gray-900">Diagram</h3>
+        <button
+          id="closeBtn"
+          class="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+          title="Close diagram panel"
+        >
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Content -->
+      <div class="flex-1 p-6 bg-gray-50">
+        <p class="text-gray-700">Diagram content would appear here</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const panel = document.getElementById('diagramPanel');
+    const openBtn = document.getElementById('openBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const status = document.getElementById('status');
+
+    function openPanel() {
+      console.log('Opening panel...');
+      panel.classList.remove('closed');
+      panel.classList.add('open');
+      status.textContent = 'Panel is OPEN';
+      status.classList.add('text-green-600');
+      status.classList.remove('text-gray-700');
+    }
+
+    function closePanel() {
+      console.log('Closing panel...');
+      panel.classList.remove('open');
+      panel.classList.add('closed');
+      status.textContent = 'Panel is CLOSED';
+      status.classList.remove('text-green-600');
+      status.classList.add('text-gray-700');
+    }
+
+    openBtn.addEventListener('click', () => {
+      console.log('Open button clicked');
+      openPanel();
+    });
+
+    closeBtn.addEventListener('click', (e) => {
+      console.log('Close button clicked', e.target);
+      closePanel();
+    });
+
+    // Test if the button is actually clickable
+    closeBtn.addEventListener('mouseenter', () => {
+      console.log('Mouse entered close button');
+    });
+
+    closeBtn.addEventListener('mouseleave', () => {
+      console.log('Mouse left close button');
+    });
+  </script>
+</body>
+</html>
+
