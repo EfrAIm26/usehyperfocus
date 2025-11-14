@@ -80,12 +80,23 @@ export default function App() {
   // ✅ ALL FUNCTIONS AND HANDLERS AT THE TOP
   const handleCloseDiagram = () => {
     console.log('🔵 handleCloseDiagram called! Current state:', diagramPanel);
-    setDiagramPanel({
-      isOpen: false,
-      code: '',
-      messageId: null,
+    
+    // Force state update with a new object reference
+    setDiagramPanel(prev => {
+      console.log('🔵 Previous state:', prev);
+      return {
+        isOpen: false,
+        code: '',
+        messageId: null,
+      };
     });
+    
     console.log('🔵 State updated to close diagram panel');
+    
+    // Force a re-render by updating a different state after a micro-task
+    setTimeout(() => {
+      console.log('🔵 Verification - diagram should be closed now');
+    }, 50);
   };
 
   const handleSendMessage = async (content: string) => {

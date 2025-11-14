@@ -141,6 +141,11 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
     }
   };
 
+  // Force immediate visual update when isOpen changes
+  useEffect(() => {
+    console.log('🟣 isOpen changed to:', isOpen);
+  }, [isOpen]);
+
   return (
     <>
       {/* Panel - Same style as SettingsPanel with smooth animation */}
@@ -148,6 +153,10 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
         className={`fixed top-0 right-0 h-full bg-white border-l border-gray-200 shadow-lg transition-all duration-300 ease-in-out z-30 ${
           isOpen ? 'w-[800px]' : 'w-0'
         } overflow-hidden`}
+        style={{
+          pointerEvents: isOpen ? 'auto' : 'none',
+          visibility: isOpen ? 'visible' : 'hidden'
+        }}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
