@@ -8,6 +8,24 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // DEV MODE: Check for dev bypass session (localhost only)
+    if (window.location.hostname === 'localhost') {
+      const devSession = localStorage.getItem('supabase.auth.token');
+      if (devSession) {
+        try {
+          const parsed = JSON.parse(devSession);
+          if (parsed.access_token === 'dev-bypass-token') {
+            console.log('🔧 DEV MODE: Using bypass session');
+            setUser(parsed.user as User);
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          // Invalid dev session, continue with normal auth
+        }
+      }
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);

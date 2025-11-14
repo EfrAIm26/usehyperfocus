@@ -1,6 +1,7 @@
 // Login page - Modern, minimalist design inspired by ChatGPT/Zipna
 import { FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
+import DevLogin from '../components/DevLogin';
 
 export default function Login() {
   const { signInWithGoogle, isLoading } = useAuth();
@@ -73,6 +74,9 @@ export default function Login() {
         </div>
 
       </div>
+      
+      {/* DEV ONLY: Bypass login button (localhost only) */}
+      <DevLogin />
     </div>
   );
 }
