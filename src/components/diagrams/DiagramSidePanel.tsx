@@ -142,15 +142,19 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed top-0 right-0 h-full w-[600px] bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col">
+    <div className="fixed top-0 right-0 h-full w-[800px] bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <h3 className="font-semibold text-gray-900">Diagram</h3>
         <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="p-1.5 rounded-lg hover:bg-red-100 transition-colors"
+          title="Close diagram panel"
         >
-          <FiX className="w-5 h-5 text-gray-600" />
+          <FiX className="w-5 h-5 text-gray-700 hover:text-red-600" />
         </button>
       </div>
 
