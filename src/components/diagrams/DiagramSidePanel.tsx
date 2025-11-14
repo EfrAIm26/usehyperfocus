@@ -146,17 +146,16 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
     console.log('🟣 isOpen changed to:', isOpen);
   }, [isOpen]);
 
+  // Don't render anything if not open
+  if (!isOpen) {
+    return null;
+  }
+
   return (
     <>
       {/* Panel - Same style as SettingsPanel with smooth animation */}
       <div
-        className={`fixed top-0 right-0 h-full bg-white border-l border-gray-200 shadow-lg transition-all duration-300 ease-in-out z-30 ${
-          isOpen ? 'w-[800px]' : 'w-0'
-        } overflow-hidden`}
-        style={{
-          pointerEvents: isOpen ? 'auto' : 'none',
-          visibility: isOpen ? 'visible' : 'hidden'
-        }}
+        className="fixed top-0 right-0 h-full w-[800px] bg-white border-l border-gray-200 shadow-lg transition-all duration-300 ease-in-out z-30 overflow-hidden"
       >
         <div className="flex flex-col h-full">
           {/* Header */}

@@ -14,8 +14,11 @@ export default function MessageList({ messages, isLoading, onOpenDiagram }: Mess
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Use setTimeout to ensure DOM has updated
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
+  }, [messages.length, isLoading]); // Depend on length and loading state
 
   if (messages.length === 0) {
     return (

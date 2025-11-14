@@ -10,9 +10,9 @@ import type {
 } from '../types';
 
 const DEFAULT_SETTINGS: Settings = {
-  fontStyle: 'bionic',
-  focusMode: 'hyperfocus',
-  semanticChunking: true,
+  fontStyle: 'normal',
+  focusMode: 'default',
+  semanticChunking: false,
   minMessagesBeforeTopicChange: 5,
   topicSimilarityThreshold: 60,
 };
