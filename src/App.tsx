@@ -219,7 +219,11 @@ RULES:
         <div 
           className="flex-1 flex flex-col transition-all duration-300"
           style={{
-            marginRight: showSettings ? '320px' : '0',
+            marginRight: diagramPanel.isOpen 
+              ? '800px' 
+              : showSettings 
+                ? '320px' 
+                : '0',
           }}
         >
           <ChatContainer

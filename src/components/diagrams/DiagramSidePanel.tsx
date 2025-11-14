@@ -139,67 +139,27 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
     }
   };
 
-  // Handle close button click
-  const handleClose = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    onClose();
-  };
-
-  // Close panel when clicking outside (backdrop)
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      // Check if click is outside the panel
-      if (!target.closest('[data-diagram-panel]')) {
-        handleClose();
-      }
-    };
-
-    // Add click listener with slight delay to avoid immediate close on open
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('click', handleClickOutside);
-    }, 100);
-
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('click', handleClickOutside);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
   return (
     <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/20 z-40"
-        onClick={handleClose}
-        aria-hidden="true"
-      />
-      
-      {/* Panel */}
-      <div 
-        data-diagram-panel
-        className="fixed top-0 right-0 h-full w-[800px] bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col"
+      {/* Panel - Same style as SettingsPanel with smooth animation */}
+      <div
+        className={`fixed top-0 right-0 h-full bg-white border-l border-gray-200 shadow-lg transition-all duration-300 ease-in-out z-30 ${
+          isOpen ? 'w-[800px]' : 'w-0'
+        } overflow-hidden`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">Diagram</h3>
-          <button
-            onClick={handleClose}
-            className="p-1.5 rounded-lg hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-            title="Close diagram panel"
-            aria-label="Close diagram panel"
-          >
-            <FiX className="w-5 h-5 text-gray-700 hover:text-red-600" />
-          </button>
-        </div>
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <h3 className="font-semibold text-gray-900">Diagram</h3>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+              title="Close diagram panel"
+              aria-label="Close diagram panel"
+            >
+              <FiX className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-1 px-4 py-2 bg-white border-b border-gray-200">
@@ -344,6 +304,7 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
       )}
 
       {/* Error message - REMOVED, errors are silent */}
+        </div>
       </div>
     </>
   );
