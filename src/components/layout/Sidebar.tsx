@@ -1,6 +1,6 @@
 // Sidebar component - Chat history and new chat button with drag-and-drop
 import React from 'react';
-import { FiPlus, FiTrash2, FiMessageSquare } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiMessageSquare, FiMove } from 'react-icons/fi';
 import {
   DndContext,
   closestCenter,
@@ -59,19 +59,32 @@ function SortableChatItem({ chat, isSelected, onSelect, onDelete }: SortableChat
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
-      className={`group relative flex items-center gap-2 px-3 py-2 rounded-lg cursor-move transition-colors ${
+      className={`group relative flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
         isSelected
           ? 'bg-white shadow-sm'
           : 'hover:bg-white/50'
       }`}
+      onClick={(e) => {
+        // Only select if clicking on the main content, not on drag handle or delete button
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-drag-handle]') && !target.closest('button')) {
+          onSelect();
+        }
+      }}
     >
+      {/* Drag handle - ONLY this area triggers drag */}
+      <div
+        {...listeners}
+        data-drag-handle
+        className="cursor-move p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Drag to reorder"
+      >
+        <FiMove className="w-4 h-4 text-gray-400" />
+      </div>
+
       <FiMessageSquare className="w-4 h-4 text-gray-500 flex-shrink-0" />
       
-      <div className="flex-1 min-w-0" onClick={(e) => {
-        e.stopPropagation();
-        onSelect();
-      }}>
+      <div className="flex-1 min-w-0 cursor-pointer">
         <div className="text-sm font-medium text-text-primary truncate">
           {chat.title}
         </div>
@@ -113,7 +126,11 @@ export default function Sidebar({
   }, [chats]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement before drag starts
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })

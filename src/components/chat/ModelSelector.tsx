@@ -1,7 +1,7 @@
 // ModelSelector component - Select AI model with provider icons
 import { useState, useRef, useEffect } from 'react';
 import { FiChevronDown } from 'react-icons/fi';
-import { OpenAI, Anthropic, Google, XAI, Perplexity } from '@lobehub/icons';
+import { OpenAI, Anthropic, Google, XAI, Perplexity, Moonshot } from '@lobehub/icons';
 import { AI_MODELS } from '../../lib/aiModels';
 
 interface ModelSelectorProps {
@@ -24,8 +24,7 @@ const getModelIcon = (provider: string, size: number = 20) => {
     case 'perplexity':
       return <Perplexity {...props} />;
     case 'moonshot':
-      // Using a moon emoji for Moonshot AI
-      return <span style={{ fontSize: size, lineHeight: 1 }}>🌙</span>;
+      return <Moonshot {...props} />;
     default:
       return null;
   }
