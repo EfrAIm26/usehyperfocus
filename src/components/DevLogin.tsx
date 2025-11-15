@@ -1,7 +1,6 @@
 // DEV ONLY: Bypass login for debugging
 // This component only appears in localhost
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
 
 export default function DevLogin() {
   const [isVisible, setIsVisible] = useState(false);
