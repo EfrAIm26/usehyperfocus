@@ -1,5 +1,5 @@
 // Main App component
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import TopBar from './components/layout/TopBar';
 import Sidebar from './components/layout/Sidebar';
 import ChatContainer from './components/chat/ChatContainer';
@@ -78,7 +78,7 @@ export default function App() {
   }, [user]);
 
   // ✅ ALL FUNCTIONS AND HANDLERS AT THE TOP
-  const handleCloseDiagram = () => {
+  const handleCloseDiagram = useCallback(() => {
     console.log('🔵 handleCloseDiagram called! Current state:', diagramPanel);
     
     // Force state update with a new object reference
@@ -97,7 +97,7 @@ export default function App() {
     setTimeout(() => {
       console.log('🔵 Verification - diagram should be closed now');
     }, 50);
-  };
+  }, [diagramPanel]);
 
   const handleSendMessage = async (content: string) => {
     await sendMessage(content);
@@ -107,13 +107,13 @@ export default function App() {
     await createNewChat();
   };
 
-  const handleOpenDiagram = (code: string, messageId: string) => {
+  const handleOpenDiagram = useCallback((code: string, messageId: string) => {
     setDiagramPanel({
       isOpen: true,
       code,
       messageId,
     });
-  };
+  }, []);
 
   const handleEditDiagram = async (instruction: string) => {
     if (!diagramPanel.messageId || !currentChat) return;

@@ -165,7 +165,16 @@ export default function Message({ message, onOpenDiagram }: MessageProps) {
   return (
     <div className="px-6 py-4 border-b border-gray-100 last:border-0">
       <div className="max-w-4xl">
-        {/* Diagram opens automatically - no visual indicator needed */}
+        {/* Show button to re-open diagram if it exists */}
+        {message.mermaidCode && (
+          <button
+            onClick={() => message.mermaidCode && onOpenDiagram(message.mermaidCode, message.id)}
+            className="mb-4 flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium transition-colors border border-indigo-200"
+          >
+            <span>📊</span>
+            View Diagram
+          </button>
+        )}
 
         {/* Semantic chunking mode */}
         {effectiveChunking && chunks.length > 0 && !isAnalyzing ? (

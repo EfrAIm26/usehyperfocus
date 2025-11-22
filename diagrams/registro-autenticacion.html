@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caso de Uso - Registro y Autenticación | Hyperfocus AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+        
+        .diagram-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1400px;
+            width: 100%;
+            animation: fadeInUp 1s ease;
+        }
+        
+        .diagram-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+        
+        .download-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+        
+        .download-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 600px;
+        }
+        
+        .description {
+            margin-top: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            border-radius: 10px;
+        }
+        
+        .description h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .description p {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        
+        .actors-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .actor-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-top: 4px solid #667eea;
+        }
+        
+        .actor-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .actor-card p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Estilos personalizados para Mermaid */
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <button class="download-btn" onclick="downloadDiagram()">
+        <span>📥</span>
+        <span>Descargar PNG</span>
+    </button>
+    
+    <div class="header">
+        <h1>📋 Caso de Uso - Hyperfocus AI</h1>
+        <p>Proceso Crítico 1: Registro de Nuevo Usuario y Autenticación</p>
+    </div>
+    
+    <div class="diagram-container">
+        <div class="diagram-title">
+            Anexo 1: Caso de uso – Registro de Nuevo Usuario y Autenticación (Google Auth)
+        </div>
+        
+        <div class="mermaid">
+            graph TD
+                %% Definición de estilos
+                classDef actorStyle fill:#fff,stroke:#333,stroke-width:2px
+                classDef systemStyle fill:#e8f4f8,stroke:#0066cc,stroke-width:3px
+                classDef useCaseStyle fill:#fff,stroke:#333,stroke-width:2px,rx:50,ry:50
+                classDef includeStyle stroke:#999,stroke-width:1px,stroke-dasharray: 5 5
+                
+                %% Actor Principal
+                U[👤 Usuario Nuevo]:::actorStyle
+                
+                %% Sistema Principal
+                subgraph SYS["🖥️ Aplicación Hyperfocus AI"]
+                    UC1[Acceder a la aplicación]:::useCaseStyle
+                    UC2[Visualizar página de login]:::useCaseStyle
+                    UC3[Hacer clic en 'Sign in with Google']:::useCaseStyle
+                    UC4[Ser redirigido a Google Auth]:::useCaseStyle
+                    UC5[Seleccionar cuenta de Google]:::useCaseStyle
+                    UC6[Autorizar permisos]:::useCaseStyle
+                    UC7[Recibir código de autorización]:::useCaseStyle
+                    UC8[Crear sesión en Supabase]:::useCaseStyle
+                    UC9[Crear registro en auth.users]:::useCaseStyle
+                    UC10[Generar tokens JWT]:::useCaseStyle
+                    UC11[Crear configuración inicial]:::useCaseStyle
+                    UC12[Almacenar tokens en localStorage]:::useCaseStyle
+                    UC13[Renderizar panel principal]:::useCaseStyle
+                    UC14[Visualizar nuevo chat vacío]:::useCaseStyle
+                end
+                
+                %% Actores Externos
+                GA[🔐 Google Auth<br/>Proveedor OAuth 2.0]:::actorStyle
+                SA[🔒 Supabase Auth<br/>Servicio de Autenticación]:::actorStyle
+                DB[💾 Supabase Database<br/>PostgreSQL]:::actorStyle
+                VE[🚀 Vercel<br/>Frontend Hosting]:::actorStyle
+                
+                %% Relaciones principales
+                U -->|1. Accede| UC1
+                UC1 -.->|include| UC2
+                UC2 -.->|include| UC3
+                UC3 -.->|include| UC4
+                
+                %% Interacción con Google Auth
+                UC4 -->|2. Redirect URI| GA
+                GA -->|3. Pantalla de login| UC5
+                UC5 -->|4. Selecciona| GA
+                UC6 -->|5. Consent screen| GA
+                GA -->|6. Genera| UC7
+                
+                %% Interacción con Supabase Auth
+                UC7 -->|7. Código OAuth| SA
+                SA -->|8. Valida con| GA
+                SA -.->|include| UC8
+                UC8 -.->|include| UC9
+                UC9 -.->|include| UC10
+                
+                %% Interacción con Database
+                UC9 -->|10. INSERT| DB
+                UC11 -->|11. Trigger RLS| DB
+                DB -->|12. user_settings| UC11
+                
+                %% Vuelta a la aplicación
+                UC10 -->|13. JWT tokens| UC12
+                UC12 -.->|include| UC13
+                UC13 -.->|include| UC14
+                
+                %% Hosting
+                VE -->|Sirve| UC2
+                VE -->|Sirve| UC13
+                
+                %% Fin del proceso
+                UC14 -->|✅ Listo| U
+                
+                %% Aplicar estilos
+                class SYS systemStyle
+        </div>
+        
+        <div class="description">
+            <h3>📝 Descripción del Proceso</h3>
+            <p><strong>Objetivo:</strong> Permitir que un nuevo usuario se registre y autentique en Hyperfocus AI utilizando su cuenta de Google, garantizando un proceso sin fricción y técnicamente robusto.</p>
+            
+            <p><strong>Flujo de Experiencia:</strong> El usuario accede a la aplicación, visualiza un botón "Sign in with Google", es redirigido al flujo OAuth 2.0 de Google, autoriza los permisos, y es redirigido automáticamente a su panel principal con un chat nuevo listo para usar.</p>
+            
+            <p><strong>Resultado:</strong> Usuario autenticado con sesión persistente, registro creado en la base de datos, y configuración inicial establecida (Focus Mode: default, Font Style: normal, Semantic Chunking: false).</p>
+        </div>
+        
+        <div class="actors-legend">
+            <div class="actor-card">
+                <h4>👤 Usuario Nuevo</h4>
+                <p>Persona que accede por primera vez a Hyperfocus AI y desea crear una cuenta para utilizar el asistente de IA especializado en neurodivergencia.</p>
+            </div>
+            
+            <div class="actor-card">
+                <h4>🚀 Vercel</h4>
+                <p>Plataforma de deployment que sirve el frontend React de la aplicación mediante SSR y CDN global, garantizando velocidad y disponibilidad.</p>
+            </div>
+            
+            <div class="actor-card">
+                <h4>🔐 Google Auth</h4>
+                <p>Proveedor de identidad OAuth 2.0 que valida las credenciales del usuario, verifica el consentimiento de permisos (email y perfil), y genera códigos de autorización.</p>
+            </div>
+            
+            <div class="actor-card">
+                <h4>🔒 Supabase Auth</h4>
+                <p>Servicio de autenticación que actúa como intermediario entre la aplicación y Google Auth, intercambia códigos OAuth por tokens JWT, y gestiona las sesiones de usuario.</p>
+            </div>
+            
+            <div class="actor-card">
+                <h4>💾 Supabase Database</h4>
+                <p>Base de datos PostgreSQL que almacena los registros de usuarios (auth.users), configuraciones (user_settings), y aplica políticas de Row Level Security (RLS) para proteger los datos.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuración de Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20
+            },
+            themeVariables: {
+                primaryColor: '#e8f4f8',
+                primaryTextColor: '#000',
+                primaryBorderColor: '#0066cc',
+                lineColor: '#333',
+                secondaryColor: '#fff',
+                tertiaryColor: '#f8f9fa',
+                fontSize: '16px',
+                fontFamily: 'Segoe UI, sans-serif'
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -26,10 +26,10 @@ export const AI_MODELS: AIModel[] = [
     description: 'Advanced reasoning with 256K context',
   },
   {
-    id: 'google/gemini-2.5-flash',
-    name: 'Gemini 2.5 Flash',
+    id: 'google/gemini-3-pro-preview',
+    name: 'Gemini 3 Pro',
     provider: 'google',
-    description: 'Fast and powerful multimodal AI',
+    description: 'Google\'s flagship frontier model (Preview)',
   },
   {
     id: 'x-ai/grok-4-fast',

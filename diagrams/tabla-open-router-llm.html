@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla: API de LLMs</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .download-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: #667eea;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+        .table-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #555;
+        }
+        td {
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        tr:hover {
+            background: #e8f4f8;
+        }
+        .criteria-col {
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            background: #f0f0f0 !important;
+        }
+        .weight-col {
+            font-weight: 600;
+            color: #666;
+        }
+        .winner {
+            background: #d4edda !important;
+            font-weight: 700;
+        }
+        .total-row {
+            background: #667eea !important;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .total-row td {
+            border-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <button class="download-btn" onclick="downloadTable()">📥 Descargar PNG</button>
+    
+    <div class="header">
+        <h1>📊 Evaluación de Proveedores Críticos</h1>
+        <p style="font-size: 1.1rem;">Anexo: Elección de proveedores críticos – criterios de selección</p>
+    </div>
+    
+    <div class="table-container" id="tableContainer">
+        <div class="table-title">
+            Tabla 4: API Gateway para LLMs (Large Language Models)
+        </div>
+        
+        <table id="evaluationTable">
+            <thead>
+                <tr>
+                    <th>Criterios de evaluación</th>
+                    <th>Ponderación</th>
+                    <th colspan="2">Open Router</th>
+                    <th colspan="2">OpenAI Direct</th>
+                    <th colspan="2">Anthropic Direct</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th>Calificación</th>
+                    <th>Resultado ponderado</th>
+                    <th>Calificación</th>
+                    <th>Resultado ponderado</th>
+                    <th>Calificación</th>
+                    <th>Resultado ponderado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="criteria-col">Precio</td>
+                    <td class="weight-col">0.20</td>
+                    <td>5</td>
+                    <td>1.00</td>
+                    <td>3</td>
+                    <td>0.60</td>
+                    <td>3</td>
+                    <td>0.60</td>
+                </tr>
+                <tr>
+                    <td class="criteria-col">Seguridad</td>
+                    <td class="weight-col">0.20</td>
+                    <td>5</td>
+                    <td>1.00</td>
+                    <td>5</td>
+                    <td>1.00</td>
+                    <td>5</td>
+                    <td>1.00</td>
+                </tr>
+                <tr>
+                    <td class="criteria-col">Compatibilidad/Integración</td>
+                    <td class="weight-col">0.30</td>
+                    <td>5</td>
+                    <td>1.50</td>
+                    <td>3</td>
+                    <td>0.90</td>
+                    <td>3</td>
+                    <td>0.90</td>
+                </tr>
+                <tr>
+                    <td class="criteria-col">Disponibilidad</td>
+                    <td class="weight-col">0.15</td>
+                    <td>5</td>
+                    <td>0.75</td>
+                    <td>5</td>
+                    <td>0.75</td>
+                    <td>5</td>
+                    <td>0.75</td>
+                </tr>
+                <tr>
+                    <td class="criteria-col">Variedad de Modelos</td>
+                    <td class="weight-col">0.15</td>
+                    <td>5</td>
+                    <td>0.75</td>
+                    <td>2</td>
+                    <td>0.30</td>
+                    <td>2</td>
+                    <td>0.30</td>
+                </tr>
+                <tr class="total-row">
+                    <td class="criteria-col">Total ponderado</td>
+                    <td class="weight-col">1.00</td>
+                    <td colspan="2" class="winner">5.00</td>
+                    <td colspan="2">3.55</td>
+                    <td colspan="2">3.55</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        function downloadTable() {
+            const container = document.getElementById('tableContainer');
+            const btn = document.querySelector('.download-btn');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '⏳ Generando PNG...';
+            btn.disabled = true;
+            
+            html2canvas(container, {
+                scale: 3,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'tabla-open-router-llm.png';
+                link.href = canvas.toDataURL('image/png', 1.0);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                btn.innerHTML = '✅ ¡Descargado!';
+                btn.disabled = false;
+                setTimeout(() => { btn.innerHTML = originalText; }, 2500);
+            }).catch(error => {
+                console.error('Error:', error);
+                btn.innerHTML = '❌ Error';
+                btn.disabled = false;
+                alert('Error al generar PNG');
+                setTimeout(() => { btn.innerHTML = originalText; }, 2500);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+

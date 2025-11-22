@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caso de Uso - Semantic Chunks | Hyperfocus AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 10px; }
+        .download-btn {
+            position: fixed; top: 20px; right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 12px 25px; border: none; border-radius: 50px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease; z-index: 1000;
+        }
+        .download-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6); }
+        .diagram-container {
+            background: white; border-radius: 15px; padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 1150px; width: 100%;
+        }
+        #diagramCanvas { width: 100%; max-width: 1070px; margin: 0 auto; display: block; }
+    </style>
+</head>
+<body>
+    <button class="download-btn" onclick="downloadDiagram()">📥 Descargar PNG</button>
+    <div class="header">
+        <h1>📋 Caso de Uso - Hyperfocus AI</h1>
+        <p style="font-size: 1.1rem;">Proceso Crítico 4: Uso de Semantic Chunks</p>
+    </div>
+    <div class="diagram-container" id="diagramContainer">
+        <svg id="diagramCanvas" viewBox="0 0 1070 950" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                    <feOffset dx="1" dy="1" result="offsetblur"/>
+                    <feComponentTransfer><feFuncA type="linear" slope="0.25"/></feComponentTransfer>
+                    <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <g id="stickFigure">
+                    <circle cx="0" cy="-20" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                    <line x1="0" y1="-12" x2="0" y2="8" stroke="currentColor" stroke-width="1.8"/>
+                    <line x1="0" y1="-2" x2="-10" y2="12" stroke="currentColor" stroke-width="1.8"/>
+                    <line x1="0" y1="-2" x2="10" y2="12" stroke="currentColor" stroke-width="1.8"/>
+                    <line x1="0" y1="8" x2="-8" y2="24" stroke="currentColor" stroke-width="1.8"/>
+                    <line x1="0" y1="8" x2="8" y2="24" stroke="currentColor" stroke-width="1.8"/>
+                </g>
+            </defs>
+            
+            <g transform="translate(70, 90)">
+                <use href="#stickFigure" color="#2c3e50"/>
+                <text x="0" y="42" text-anchor="middle" font-size="12" font-weight="bold" fill="#2c3e50">Usuario</text>
+            </g>
+            
+            <rect x="180" y="40" width="680" height="870" fill="#e8f4f8" stroke="#0066cc" stroke-width="2.5" rx="8" filter="url(#shadow)"/>
+            <text x="520" y="65" text-anchor="middle" font-size="16" font-weight="bold" fill="#0066cc">🖥️ Aplicación Hyperfocus AI</text>
+            
+            <ellipse cx="450" cy="140" rx="110" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="450" y="145" text-anchor="middle" font-size="11" fill="#333">Ir a panel de configuración</text>
+            
+            <ellipse cx="450" cy="220" rx="105" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="450" y="225" text-anchor="middle" font-size="11" fill="#333">Activar "Semantic Chunking"</text>
+            
+            <ellipse cx="650" cy="220" rx="100" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="650" y="220" text-anchor="middle" font-size="10" fill="#333">Guardar configuración</text>
+            <text x="650" y="232" text-anchor="middle" font-size="10" fill="#333">en user_settings</text>
+            
+            <ellipse cx="450" cy="310" rx="95" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="450" y="315" text-anchor="middle" font-size="11" fill="#333">Enviar mensaje al chat</text>
+            
+            <ellipse cx="650" cy="310" rx="105" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="650" y="310" text-anchor="middle" font-size="10" fill="#333">Generar embedding del</text>
+            <text x="650" y="322" text-anchor="middle" font-size="10" fill="#333">mensaje (vector 1536D)</text>
+            
+            <ellipse cx="450" cy="410" rx="110" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="450" y="410" text-anchor="middle" font-size="10" fill="#333">Calcular similitud coseno</text>
+            <text x="450" y="422" text-anchor="middle" font-size="10" fill="#333">con chunk actual</text>
+            
+            <ellipse cx="320" cy="510" rx="95" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="320" y="510" text-anchor="middle" font-size="10" fill="#333">Similitud &gt; 60%</text>
+            <text x="320" y="522" text-anchor="middle" font-size="10" fill="#333">(mantener chunk)</text>
+            
+            <ellipse cx="580" cy="510" rx="95" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="580" y="510" text-anchor="middle" font-size="10" fill="#333">Similitud &lt; 60%</text>
+            <text x="580" y="522" text-anchor="middle" font-size="10" fill="#333">(nuevo chunk)</text>
+            
+            <ellipse cx="580" cy="610" rx="105" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="580" y="610" text-anchor="middle" font-size="10" fill="#333">Generar etiqueta de tema</text>
+            <text x="580" y="622" text-anchor="middle" font-size="10" fill="#333">con LLM (4 palabras)</text>
+            
+            <ellipse cx="580" cy="700" rx="100" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="580" y="700" text-anchor="middle" font-size="10" fill="#333">Crear registro en</text>
+            <text x="580" y="712" text-anchor="middle" font-size="10" fill="#333">semantic_chunks</text>
+            
+            <ellipse cx="450" cy="800" rx="110" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="450" y="800" text-anchor="middle" font-size="10" fill="#333">Renderizar separadores</text>
+            <text x="450" y="812" text-anchor="middle" font-size="10" fill="#333">visuales con etiquetas</text>
+            
+            <ellipse cx="450" cy="880" rx="100" ry="28" fill="white" stroke="#333" stroke-width="1.8" filter="url(#shadow)"/>
+            <text x="450" y="885" text-anchor="middle" font-size="11" fill="#333">Navegar entre chunks</text>
+            
+            <g transform="translate(960, 170)">
+                <use href="#stickFigure" color="#2c3e50"/>
+                <text x="0" y="42" text-anchor="middle" font-size="11" font-weight="bold" fill="#2c3e50">Vercel</text>
+                <text x="0" y="56" text-anchor="middle" font-size="9" fill="#555">Frontend</text>
+            </g>
+            
+            <g transform="translate(960, 450)">
+                <use href="#stickFigure" color="#2c3e50"/>
+                <text x="0" y="42" text-anchor="middle" font-size="11" font-weight="bold" fill="#2c3e50">Open Router</text>
+                <text x="0" y="56" text-anchor="middle" font-size="9" fill="#555">Embeddings API</text>
+            </g>
+            
+            <g transform="translate(960, 680)">
+                <use href="#stickFigure" color="#2c3e50"/>
+                <text x="0" y="42" text-anchor="middle" font-size="11" font-weight="bold" fill="#2c3e50">Supabase DB</text>
+                <text x="0" y="56" text-anchor="middle" font-size="9" fill="#555">PostgreSQL+pgvector</text>
+            </g>
+            
+            <line x1="78" y1="90" x2="340" y2="140" stroke="#2c3e50" stroke-width="2"/>
+            <text x="190" y="110" font-size="9" fill="#2c3e50">1. Accede</text>
+            
+            <line x1="560" y1="140" x2="920" y2="170" stroke="#0066cc" stroke-width="1.8"/>
+            <text x="720" y="150" font-size="9" fill="#0066cc">Sirve interfaz</text>
+            
+            <line x1="450" y1="168" x2="450" y2="192" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="460" y="183" font-size="8" fill="#666" font-style="italic">«include»</text>
+            
+            <line x1="555" y1="220" x2="550" y2="220" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="555" y="213" font-size="8" fill="#666" font-style="italic">«include»</text>
+            
+            <line x1="755" y1="220" x2="920" y2="680" stroke="#0066cc" stroke-width="2"/>
+            <text x="820" y="440" font-size="9" fill="#0066cc">2. UPDATE settings</text>
+            
+            <line x1="545" y1="310" x2="545" y2="310" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="555" y="303" font-size="8" fill="#666" font-style="italic">«include»</text>
+            
+            <line x1="755" y1="310" x2="920" y2="450" stroke="#ff6b6b" stroke-width="2"/>
+            <text x="820" y="375" font-size="9" fill="#ff6b6b">3. Generate embedding</text>
+            
+            <line x1="920" y1="470" x2="755" y2="410" stroke="#ff6b6b" stroke-width="2"/>
+            <text x="820" y="435" font-size="9" fill="#ff6b6b">4. Vector 1536D</text>
+            
+            <line x1="380" y1="438" x2="345" y2="482" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="350" y="463" font-size="8" fill="#666" font-style="italic">if &gt;60%</text>
+            
+            <line x1="520" y1="438" x2="555" y2="482" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="525" y="463" font-size="8" fill="#666" font-style="italic">if &lt;60%</text>
+            
+            <line x1="580" y1="538" x2="580" y2="582" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="590" y="563" font-size="8" fill="#666" font-style="italic">«include»</text>
+            
+            <line x1="680" y1="610" x2="920" y2="470" stroke="#ff6b6b" stroke-width="1.8"/>
+            <text x="780" y="535" font-size="9" fill="#ff6b6b">5. LLM label</text>
+            
+            <line x1="680" y1="700" x2="920" y2="700" stroke="#0066cc" stroke-width="2"/>
+            <text x="780" y="695" font-size="9" fill="#0066cc">6. INSERT chunk</text>
+            
+            <line x1="490" y1="728" x2="470" y2="772" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="475" y="753" font-size="8" fill="#666" font-style="italic">«include»</text>
+            
+            <line x1="320" y1="538" x2="400" y2="772" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>
+            
+            <line x1="350" y1="800" x2="90" y2="120" stroke="#28a745" stroke-width="2.5"/>
+            <text x="180" y="460" font-size="10" fill="#28a745" font-weight="bold" transform="rotate(-65, 180, 460)">✓ Chunks organizados</text>
+        </svg>
+    </div>
+    <script>
+        function downloadDiagram() {
+            const svgElement = document.getElementById('diagramCanvas');
+            if (!svgElement) {
+                alert('Error: No se encontró el elemento SVG');
+                return;
+            }
+            
+            const btn = document.querySelector('.download-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Generando PNG...';
+            btn.disabled = true;
+            
+            try {
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                const viewBox = svgElement.getAttribute('viewBox');
+                if (!viewBox) {
+                    throw new Error('SVG no tiene viewBox');
+                }
+                
+                const [x, y, width, height] = viewBox.split(' ').map(Number);
+                const svgWithSize = svgData
+                    .replace('<svg', `<svg width="${width}" height="${height}"`)
+                    .replace(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/, '')
+                    .replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+                
+                const scale = 3;
+                canvas.width = width * scale;
+                canvas.height = height * scale;
+                
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                const svgBlob = new Blob([svgWithSize], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+                
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    URL.revokeObjectURL(url);
+                    
+                    canvas.toBlob(function(blob) {
+                        if (!blob) {
+                            throw new Error('No se pudo crear el blob PNG');
+                        }
+                        
+                        const link = document.createElement('a');
+                        link.download = 'hyperfocus-ai-diagrama-semantic-chunks.png';
+                        link.href = URL.createObjectURL(blob);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        setTimeout(() => URL.revokeObjectURL(link.href), 100);
+                        
+                        btn.innerHTML = '✅ ¡Descargado!';
+                        btn.disabled = false;
+                        setTimeout(() => { btn.innerHTML = originalText; }, 2500);
+                    }, 'image/png', 1.0);
+                };
+                
+                img.onerror = function(err) {
+                    console.error('Error cargando SVG:', err);
+                    URL.revokeObjectURL(url);
+                    btn.innerHTML = '❌ Error';
+                    btn.disabled = false;
+                    alert('Error al generar PNG');
+                    setTimeout(() => { btn.innerHTML = originalText; }, 2500);
+                };
+                
+                img.src = url;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                btn.innerHTML = '❌ Error';
+                btn.disabled = false;
+                alert('Error: ' + error.message);
+                setTimeout(() => { btn.innerHTML = originalText; }, 2500);
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramas de Casos de Uso - Hyperfocus AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 50px;
+            opacity: 0.95;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        .card h2 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .card a {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .card a:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Diagramas de Casos de Uso</h1>
+        <div class="subtitle">Hyperfocus AI - 6 Procesos Críticos</div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2><span>1️⃣</span> Registro y Autenticación</h2>
+                <p>Proceso de registro de nuevo usuario mediante Google OAuth 2.0, validación con Supabase Auth, y creación de sesión persistente.</p>
+                <a href="registro-autenticacion-final.html" target="_blank">Ver Diagrama →</a>
+            </div>
+            
+            <div class="card">
+                <h2><span>2️⃣</span> Inicio y Cierre de Sesión</h2>
+                <p>Validación de tokens JWT, renovación automática de sesiones, y proceso de cierre de sesión con limpieza de localStorage.</p>
+                <a href="inicio-cierre-sesion.html" target="_blank">Ver Diagrama →</a>
+            </div>
+            
+            <div class="card">
+                <h2><span>3️⃣</span> Focus Mode con Chat</h2>
+                <p>Motor de Hiperfoco: activación del modo de enfoque, definición de intenciones, monitoreo de desviación de tema, y gentle nudges.</p>
+                <a href="focus-mode.html" target="_blank">Ver Diagrama →</a>
+            </div>
+            
+            <div class="card">
+                <h2><span>4️⃣</span> Semantic Chunks</h2>
+                <p>Segmentación semántica automática de conversaciones mediante embeddings, cálculo de similitud coseno, y generación de etiquetas de tema.</p>
+                <a href="semantic-chunks.html" target="_blank">Ver Diagrama →</a>
+            </div>
+            
+            <div class="card">
+                <h2><span>5️⃣</span> Creación de Diagramas</h2>
+                <p>Generación de diagramas Mermaid mediante LLM, renderizado con mermaid.js, edición en tiempo real, y versionado de diagramas.</p>
+                <a href="visual-diagrams.html" target="_blank">Ver Diagrama →</a>
+            </div>
+            
+            <div class="card">
+                <h2><span>6️⃣</span> Pago de Suscripción (Stripe)</h2>
+                <p>Proceso de pago mediante Stripe Checkout, validación de webhooks, creación de suscripciones, y habilitación de funcionalidades premium.</p>
+                <a href="stripe-payment.html" target="_blank">Ver Diagrama →</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            © 2025 Hyperfocus AI - Diagramas de Casos de Uso UML<br>
+            Todos los diagramas incluyen botón de descarga PNG en alta resolución (3x scale)
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+

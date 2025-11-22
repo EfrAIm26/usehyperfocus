@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Use Hyperfocus - Diseño de Infraestructura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        #diagram {
+            width: 100%;
+            height: auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .legend h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .legend-item {
+            display: inline-block;
+            margin: 5px 15px;
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Anexo: Diseño de la Infraestructura</h1>
+        <p class="subtitle">Use Hyperfocus - Arquitectura de Servicios Externalizados</p>
+        
+        <div class="controls">
+            <button onclick="downloadPNG()">📥 Descargar como PNG</button>
+            <button onclick="window.print()">🖨️ Imprimir</button>
+        </div>
+        
+        <svg id="diagram" viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+            <!-- Definiciones para sombras y gradientes -->
+            <defs>
+                <filter id="shadow">
+                    <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+                </filter>
+                <linearGradient id="vercelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#000000;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="supabaseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#3ECF8E;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#2E9B6F;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="openrouterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#4F46E5;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Internet Cloud (Centro) -->
+            <ellipse cx="700" cy="450" rx="180" ry="120" fill="#E3F2FD" stroke="#1976D2" stroke-width="3" filter="url(#shadow)"/>
+            <text x="700" y="440" text-anchor="middle" font-size="24" font-weight="bold" fill="#1976D2">Internet</text>
+            <text x="700" y="470" text-anchor="middle" font-size="18" fill="#1976D2">5G / WiFi</text>
+            
+            <!-- Vercel - Frontend (Arriba Izquierda) -->
+            <g id="vercel">
+                <rect x="50" y="50" width="280" height="180" rx="10" fill="url(#vercelGrad)" filter="url(#shadow)"/>
+                <text x="190" y="85" text-anchor="middle" font-size="18" font-weight="bold" fill="white">Vercel</text>
+                <text x="190" y="110" text-anchor="middle" font-size="14" fill="#E0E0E0">Frontend Deployment</text>
+                
+                <!-- Servidor Frontend -->
+                <rect x="80" y="130" width="220" height="40" rx="5" fill="#1a1a1a" stroke="#fff" stroke-width="1"/>
+                <text x="190" y="150" text-anchor="middle" font-size="12" fill="white">Server React App</text>
+                <text x="190" y="165" text-anchor="middle" font-size="10" fill="#ccc">(Static Files + CDN)</text>
+                
+                <!-- Router -->
+                <circle cx="190" cy="220" r="15" fill="#4CAF50" stroke="#fff" stroke-width="2"/>
+                <text x="190" y="225" text-anchor="middle" font-size="10" fill="white">R</text>
+                
+                <!-- Conexión a Internet -->
+                <line x1="190" y1="235" x2="550" y2="420" stroke="#d32f2f" stroke-width="3" marker-end="url(#arrowhead)"/>
+            </g>
+            
+            <!-- Supabase (Arriba Centro) -->
+            <g id="supabase">
+                <rect x="560" y="50" width="280" height="250" rx="10" fill="url(#supabaseGrad)" filter="url(#shadow)"/>
+                <text x="700" y="85" text-anchor="middle" font-size="18" font-weight="bold" fill="white">Supabase</text>
+                <text x="700" y="110" text-anchor="middle" font-size="14" fill="#E0E0E0">Backend as a Service</text>
+                
+                <!-- Base de Datos PostgreSQL -->
+                <rect x="590" y="130" width="220" height="40" rx="5" fill="#2E9B6F" stroke="#fff" stroke-width="1"/>
+                <text x="700" y="150" text-anchor="middle" font-size="12" fill="white">PostgreSQL Database</text>
+                <text x="700" y="165" text-anchor="middle" font-size="10" fill="#E0E0E0">(chats, messages, settings)</text>
+                
+                <!-- Servidor de Autenticación -->
+                <rect x="590" y="180" width="220" height="40" rx="5" fill="#2E9B6F" stroke="#fff" stroke-width="1"/>
+                <text x="700" y="200" text-anchor="middle" font-size="12" fill="white">Auth Server</text>
+                <text x="700" y="215" text-anchor="middle" font-size="10" fill="#E0E0E0">(OAuth, JWT, RLS)</text>
+                
+                <!-- Router -->
+                <circle cx="700" cy="250" r="15" fill="#4CAF50" stroke="#fff" stroke-width="2"/>
+                <text x="700" y="255" text-anchor="middle" font-size="10" fill="white">R</text>
+                
+                <!-- Conexión a Internet -->
+                <line x1="700" y1="265" x2="700" y2="330" stroke="#d32f2f" stroke-width="3" marker-end="url(#arrowhead)"/>
+            </g>
+            
+            <!-- OpenRouter API (Arriba Derecha) -->
+            <g id="openrouter">
+                <rect x="1070" y="50" width="280" height="180" rx="10" fill="url(#openrouterGrad)" filter="url(#shadow)"/>
+                <text x="1210" y="85" text-anchor="middle" font-size="18" font-weight="bold" fill="white">OpenRouter</text>
+                <text x="1210" y="110" text-anchor="middle" font-size="14" fill="#E0E0E0">AI API Gateway</text>
+                
+                <!-- Servidor API -->
+                <rect x="1100" y="130" width="220" height="40" rx="5" fill="#4F46E5" stroke="#fff" stroke-width="1"/>
+                <text x="1210" y="150" text-anchor="middle" font-size="12" fill="white">AI Models Server</text>
+                <text x="1210" y="165" text-anchor="middle" font-size="10" fill="#E0E0E0">(GPT-4, Claude, etc.)</text>
+                
+                <!-- Router -->
+                <circle cx="1210" cy="220" r="15" fill="#4CAF50" stroke="#fff" stroke-width="2"/>
+                <text x="1210" y="225" text-anchor="middle" font-size="10" fill="white">R</text>
+                
+                <!-- Conexión a Internet -->
+                <line x1="1210" y1="235" x2="850" y2="420" stroke="#d32f2f" stroke-width="3" marker-end="url(#arrowhead)"/>
+            </g>
+            
+            <!-- Futuro: Base de Datos para Inferencia (Abajo Izquierda) -->
+            <g id="future-inference">
+                <rect x="50" y="650" width="280" height="200" rx="10" fill="#FF9800" fill-opacity="0.8" stroke="#F57C00" stroke-width="2" stroke-dasharray="5,5" filter="url(#shadow)"/>
+                <text x="190" y="685" text-anchor="middle" font-size="18" font-weight="bold" fill="#E65100">[Futuro]</text>
+                <text x="190" y="710" text-anchor="middle" font-size="16" font-weight="bold" fill="#E65100">Inferencia Propia</text>
+                
+                <!-- Servidor de Inferencia -->
+                <rect x="80" y="730" width="220" height="40" rx="5" fill="#F57C00" stroke="#fff" stroke-width="1"/>
+                <text x="190" y="750" text-anchor="middle" font-size="12" fill="white">Inference Server</text>
+                <text x="190" y="765" text-anchor="middle" font-size="10" fill="#fff">(Modelos Propios)</text>
+                
+                <!-- Base de Datos de Modelos -->
+                <rect x="80" y="780" width="220" height="40" rx="5" fill="#F57C00" stroke="#fff" stroke-width="1"/>
+                <text x="190" y="800" text-anchor="middle" font-size="12" fill="white">Model Database</text>
+                <text x="190" y="815" text-anchor="middle" font-size="10" fill="#fff">(Vector DB, Embeddings)</text>
+                
+                <!-- Router -->
+                <circle cx="190" cy="840" r="15" fill="#4CAF50" stroke="#fff" stroke-width="2"/>
+                <text x="190" y="845" text-anchor="middle" font-size="10" fill="white">R</text>
+                
+                <!-- Conexión Futura a Internet (punteada) -->
+                <line x1="190" y1="855" x2="550" y2="570" stroke="#F57C00" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead-dashed)"/>
+            </g>
+            
+            <!-- Dispositivos de Usuario (Abajo Centro y Derecha) -->
+            <g id="devices">
+                <!-- Laptop -->
+                <rect x="560" y="700" width="100" height="60" rx="5" fill="#2196F3" stroke="#1976D2" stroke-width="2" filter="url(#shadow)"/>
+                <rect x="570" y="710" width="80" height="35" rx="2" fill="#E3F2FD"/>
+                <line x1="580" y1="750" x2="640" y2="750" stroke="#1976D2" stroke-width="2"/>
+                <text x="610" y="775" text-anchor="middle" font-size="12" fill="#333">Laptop</text>
+                
+                <!-- Celular -->
+                <rect x="720" y="720" width="50" height="80" rx="8" fill="#9C27B0" stroke="#7B1FA2" stroke-width="2" filter="url(#shadow)"/>
+                <rect x="730" y="735" width="30" height="50" rx="2" fill="#E1BEE7"/>
+                <circle cx="745" cy="790" r="3" fill="#7B1FA2"/>
+                <text x="745" y="815" text-anchor="middle" font-size="12" fill="#333">Móvil</text>
+                
+                <!-- Tablet -->
+                <rect x="820" y="710" width="80" height="100" rx="8" fill="#00BCD4" stroke="#0097A7" stroke-width="2" filter="url(#shadow)"/>
+                <rect x="830" y="725" width="60" height="70" rx="2" fill="#B2EBF2"/>
+                <text x="860" y="825" text-anchor="middle" font-size="12" fill="#333">Tablet</text>
+                
+                <!-- Conexiones desde dispositivos a Internet -->
+                <line x1="610" y1="700" x2="650" y2="570" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+                <line x1="745" y1="720" x2="700" y2="570" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+                <line x1="860" y1="710" x2="750" y2="570" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+            </g>
+            
+            <!-- Flechas -->
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#d32f2f" />
+                </marker>
+                <marker id="arrowhead-dashed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#F57C00" />
+                </marker>
+            </defs>
+            
+            <!-- Etiquetas de conexión -->
+            <text x="370" y="320" font-size="12" fill="#d32f2f" font-weight="bold">HTTPS</text>
+            <text x="650" y="300" font-size="12" fill="#d32f2f" font-weight="bold">HTTPS</text>
+            <text x="1030" y="320" font-size="12" fill="#d32f2f" font-weight="bold">HTTPS</text>
+            <text x="370" y="640" font-size="12" fill="#F57C00" font-weight="bold" font-style="italic">[Futuro]</text>
+            
+            <!-- Leyenda -->
+            <g id="legend">
+                <rect x="50" y="350" width="300" height="200" rx="5" fill="#f5f5f5" stroke="#ddd" stroke-width="1"/>
+                <text x="200" y="375" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">Leyenda</text>
+                
+                <!-- Servicios Actuales -->
+                <rect x="70" y="390" width="20" height="15" fill="url(#vercelGrad)"/>
+                <text x="100" y="402" font-size="12" fill="#333">Vercel (Frontend)</text>
+                
+                <rect x="70" y="415" width="20" height="15" fill="url(#supabaseGrad)"/>
+                <text x="100" y="427" font-size="12" fill="#333">Supabase (Backend)</text>
+                
+                <rect x="70" y="440" width="20" height="15" fill="url(#openrouterGrad)"/>
+                <text x="100" y="452" font-size="12" fill="#333">OpenRouter (AI API)</text>
+                
+                <!-- Servicios Futuros -->
+                <rect x="70" y="465" width="20" height="15" fill="#FF9800" fill-opacity="0.8" stroke="#F57C00" stroke-width="1" stroke-dasharray="2,2"/>
+                <text x="100" y="477" font-size="12" fill="#333">Inferencia Propia (Futuro)</text>
+                
+                <!-- Conexiones -->
+                <line x1="70" y1="495" x2="90" y2="495" stroke="#d32f2f" stroke-width="3"/>
+                <text x="100" y="500" font-size="12" fill="#333">Conexión HTTPS</text>
+                
+                <line x1="70" y1="520" x2="90" y2="520" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+                <text x="100" y="525" font-size="12" fill="#333">Conexión Inalámbrica</text>
+                
+                <line x1="70" y1="545" x2="90" y2="545" stroke="#F57C00" stroke-width="2" stroke-dasharray="5,5"/>
+                <text x="100" y="550" font-size="12" fill="#333">Conexión Futura</text>
+            </g>
+            
+            <!-- Notas -->
+            <g id="notes">
+                <rect x="1070" y="350" width="280" height="200" rx="5" fill="#FFF3E0" stroke="#FF9800" stroke-width="1"/>
+                <text x="1210" y="375" text-anchor="middle" font-size="16" font-weight="bold" fill="#E65100">Notas Técnicas</text>
+                
+                <text x="1085" y="400" font-size="11" fill="#333">• Frontend: React + Vite</text>
+                <text x="1085" y="420" font-size="11" fill="#333">• CDN Global: Vercel Edge</text>
+                <text x="1085" y="440" font-size="11" fill="#333">• Base de Datos: PostgreSQL</text>
+                <text x="1085" y="460" font-size="11" fill="#333">• Auth: Supabase Auth</text>
+                <text x="1085" y="480" font-size="11" fill="#333">• Seguridad: Row Level Security</text>
+                <text x="1085" y="500" font-size="11" fill="#333">• API Externa: OpenRouter</text>
+                <text x="1085" y="520" text-anchor="start" font-size="11" fill="#E65100" font-style="italic">• Escalabilidad: Preparado para</text>
+                <text x="1085" y="535" text-anchor="start" font-size="11" fill="#E65100" font-style="italic">  inferencia propia cuando crezca</text>
+            </g>
+        </svg>
+        
+        <div class="legend">
+            <h3>Descripción de la Arquitectura</h3>
+            <p><strong>Use Hyperfocus</strong> utiliza una arquitectura completamente externalizada basada en servicios en la nube. El frontend de la aplicación React se despliega en <strong>Vercel</strong>, aprovechando su CDN global para distribución rápida de contenido estático. La base de datos PostgreSQL y el sistema de autenticación están alojados en <strong>Supabase</strong>, proporcionando escalabilidad automática y seguridad mediante Row Level Security. Las capacidades de inteligencia artificial se obtienen mediante la <strong>API de OpenRouter</strong>, que actúa como gateway para múltiples modelos de IA. Todos los servicios se comunican a través de conexiones HTTPS seguras sobre Internet. La arquitectura está diseñada para escalar, con planes futuros para implementar un sistema de inferencia propio cuando la empresa crezca, incluyendo servidores de inferencia y bases de datos vectoriales para embeddings y modelos personalizados.</p>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        function downloadPNG() {
+            const svg = document.getElementById('diagram');
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            canvas.width = 1400;
+            canvas.height = 900;
+            
+            img.onload = function() {
+                ctx.fillStyle = '#fafafa';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'usehyperfocus-infraestructura.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            };
+            
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+

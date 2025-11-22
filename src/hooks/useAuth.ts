@@ -59,6 +59,26 @@ export function useAuth() {
 
   const signOut = async () => {
     setIsLoading(true);
+    
+    // Check for dev bypass session
+    if (window.location.hostname === 'localhost') {
+      const devSession = localStorage.getItem('supabase.auth.token');
+      if (devSession) {
+        try {
+          const parsed = JSON.parse(devSession);
+          if (parsed.access_token === 'dev-bypass-token') {
+            console.log('🔧 DEV MODE: Signing out bypass session');
+            localStorage.removeItem('supabase.auth.token');
+            setUser(null);
+            window.location.reload(); // Reload to clear state
+            return;
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error.message);
@@ -76,4 +96,3 @@ export function useAuth() {
     getUser,
   };
 }
-
