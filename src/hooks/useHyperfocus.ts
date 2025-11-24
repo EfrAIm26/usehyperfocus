@@ -1,5 +1,5 @@
 // Custom hook for Hyperfocus mode
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { HyperfocusState, Chat } from '../types';
 import { storage } from '../lib/storage';
 import { analyzeTopic, extractTopic } from '../lib/openrouter';
@@ -17,23 +17,40 @@ export function useHyperfocus(currentChat: Chat | undefined) {
   });
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  // Use ref to track analysis to prevent loops
+  const isAnalyzingRef = useRef(false);
+  
+  // Get settings only when needed or when they actually change
+  // This avoids re-running effects on every render
   const settings = storage.getSettings();
 
   // Update hyperfocus state when chat changes
+  // STRICT dependencies: Only run when chat ID changes or settings explicitly change
   useEffect(() => {
     if (currentChat) {
-      setHyperfocusState({
-        currentTopic: currentChat.topic,
-        focusTask: settings.focusTask || null,
-        isDistracted: false,
-        messageCount: currentChat.messageCount,
-        topicConfidence: 100,
-        timerDuration: settings.timerDuration || null,
-        timerStartTime: null,
-        timerActive: false,
+      // Only update if relevant properties actually changed to avoid re-renders
+      setHyperfocusState(prev => {
+        if (prev.currentTopic === currentChat.topic && 
+            prev.focusTask === (settings.focusTask || null) &&
+            prev.messageCount === currentChat.messageCount) {
+          return prev;
+        }
+        
+        return {
+          ...prev,
+          currentTopic: currentChat.topic,
+          focusTask: settings.focusTask || null,
+          // Don't auto-reset distraction unless chat changed
+          isDistracted: prev.currentTopic !== currentChat.topic ? false : prev.isDistracted,
+          messageCount: currentChat.messageCount,
+          // Keep timer state
+          timerDuration: settings.timerDuration || null,
+          timerStartTime: prev.timerStartTime,
+          timerActive: prev.timerActive,
+        };
       });
     }
-  }, [currentChat?.id, settings.focusTask, settings.timerDuration]);
+  }, [currentChat?.id, currentChat?.topic, currentChat?.messageCount, settings.focusTask]);
 
   /**
    * Check if a new message stays on topic
@@ -44,8 +61,11 @@ export function useHyperfocus(currentChat: Chat | undefined) {
     confidence: number;
     shouldBlock: boolean;
   }> => {
-    // If default mode or no chat, allow everything
-    if (settings.focusMode !== 'hyperfocus' || !currentChat) {
+    // GUARD: If default mode or no chat, allow everything immediately
+    // Using storage directly to get fresh settings
+    const currentSettings = storage.getSettings();
+    
+    if (currentSettings.focusMode !== 'hyperfocus' || !currentChat) {
       return {
         isOnTopic: true,
         topic: newMessage.slice(0, 50),
@@ -54,7 +74,18 @@ export function useHyperfocus(currentChat: Chat | undefined) {
       };
     }
 
+    if (isAnalyzingRef.current) {
+      console.warn('Hyperfocus analysis already in progress');
+      return {
+        isOnTopic: true, // Fail open
+        topic: 'Analysis pending',
+        confidence: 100,
+        shouldBlock: false
+      };
+    }
+
     setIsAnalyzing(true);
+    isAnalyzingRef.current = true;
 
     try {
       const messageCount = currentChat.messageCount;
@@ -71,40 +102,31 @@ export function useHyperfocus(currentChat: Chat | undefined) {
         };
       }
 
-      // Allow topic change after minimum messages
-      if (messageCount >= settings.minMessagesBeforeTopicChange) {
-        const topic = await extractTopic(newMessage);
-        
+      // Check topic similarity
+      // Only check if we have a valid current topic
+      if (currentChat.topic) {
+        const analysis = await analyzeTopic(currentChat.topic, newMessage);
+        const isOnTopic = analysis.similarity >= currentSettings.topicSimilarityThreshold;
+        const shouldBlock = !isOnTopic;
+
+        setHyperfocusState(prev => ({
+          ...prev,
+          isDistracted: shouldBlock,
+          topicConfidence: analysis.similarity,
+        }));
+
         return {
-          isOnTopic: true,
-          topic,
-          confidence: 100,
-          shouldBlock: false,
+          isOnTopic,
+          topic: analysis.newTopic,
+          confidence: analysis.similarity,
+          shouldBlock,
         };
       }
+      
+      return { isOnTopic: true, topic: '', confidence: 100, shouldBlock: false };
 
-      // Check topic similarity
-      const analysis = await analyzeTopic(currentChat.topic, newMessage);
-
-      const isOnTopic = analysis.similarity >= settings.topicSimilarityThreshold;
-      const shouldBlock = !isOnTopic;
-
-      setHyperfocusState(prev => ({
-        ...prev,
-        isDistracted: shouldBlock,
-        topicConfidence: analysis.similarity,
-      }));
-
-      return {
-        isOnTopic,
-        topic: analysis.newTopic,
-        confidence: analysis.similarity,
-        shouldBlock,
-      };
     } catch (error) {
       console.error('Error checking focus:', error);
-      
-      // On error, allow the message (don't block)
       return {
         isOnTopic: true,
         topic: newMessage.slice(0, 50),
@@ -113,12 +135,10 @@ export function useHyperfocus(currentChat: Chat | undefined) {
       };
     } finally {
       setIsAnalyzing(false);
+      isAnalyzingRef.current = false;
     }
-  }, [currentChat, settings]);
+  }, [currentChat?.id, currentChat?.topic, currentChat?.messageCount]); // Minimal deps
 
-  /**
-   * Reset distraction state
-   */
   const resetDistraction = useCallback(() => {
     setHyperfocusState(prev => ({
       ...prev,
@@ -134,4 +154,3 @@ export function useHyperfocus(currentChat: Chat | undefined) {
     resetDistraction,
   };
 }
-

@@ -31,23 +31,36 @@ export function onStorageReady(listener: StorageEventListener) {
 async function initializeCache() {
   if (isInitialized) return;
   
+  // 1. Load from fallback immediately (Optimistic UI)
+  const localChats = fallbackStorage.getChats();
+  cachedChats = localChats;
+  cachedSettings = fallbackStorage.getSettings();
+  isInitialized = true;
+  notifyStorageReady(); // Update UI immediately
+  
   try {
-    console.log('🔄 Initializing storage cache from Supabase...');
+    // 2. Try Supabase in background
+    const remoteChats = await supabaseStorage.getChats();
+    const remoteSettings = await supabaseStorage.getSettings();
     
-    // Force fresh data from Supabase
-    cachedChats = await supabaseStorage.getChats();
-    cachedSettings = await supabaseStorage.getSettings();
+    // 3. Simple update logic (Remote is source of truth if available)
+    if (remoteChats.length > 0) {
+       cachedChats = remoteChats;
+    } else if (localChats.length > 0) {
+       // Remote empty, local has data (e.g. bypass mode or sync issue) -> Keep local
+       console.log('⚠️ Remote empty, keeping local data');
+    } else {
+       cachedChats = [];
+    }
+
+    if (remoteSettings) {
+        cachedSettings = remoteSettings;
+    }
     
-    console.log(`✅ Storage cache initialized: ${cachedChats.length} chats loaded`);
-    isInitialized = true;
-    notifyStorageReady(); // Notify that storage is ready
+    notifyStorageReady(); // Update UI with fresh server data
   } catch (error) {
-    console.error('❌ Supabase initialization failed, using localStorage fallback:', error);
-    cachedChats = fallbackStorage.getChats();
-    cachedSettings = fallbackStorage.getSettings();
-    isInitialized = true;
-    console.log('✅ Storage cache initialized from localStorage fallback');
-    notifyStorageReady(); // Notify that storage is ready
+    console.warn('⚠️ Supabase sync failed, keeping local data:', error);
+    // Keep local data as is
   }
 }
 
@@ -60,184 +73,126 @@ export const storage = {
 
   // Force reinitialize cache (call this when user changes)
   async reinitialize() {
-    console.log('🔄 Force reinitializing storage cache...');
     isInitialized = false;
-    cachedChats = [];
-    cachedSettings = null;
     await initializeCache();
-    console.log('✅ Storage reinitialized and ready');
-    notifyStorageReady(); // Notify that storage is reinitialized
+    notifyStorageReady();
   },
 
   // Get all chats (synchronous from cache)
   getChats(): Chat[] {
     if (!isInitialized) {
-      console.warn('Storage not initialized, returning empty array');
-      return [];
+      return fallbackStorage.getChats();
     }
     return cachedChats;
   },
 
   // Get a specific chat by ID (synchronous from cache)
   getChat(id: string): Chat | undefined {
-    if (!isInitialized) return undefined;
-    return cachedChats.find((chat) => chat.id === id);
+    return this.getChats().find((chat) => chat.id === id);
   },
 
   // Save a chat (async to Supabase, then update cache)
   async saveChat(chat: Chat): Promise<void> {
+    // 1. Update cache immediately (Optimistic)
+    const index = cachedChats.findIndex((c) => c.id === chat.id);
+    if (index !== -1) {
+      cachedChats[index] = chat;
+    } else {
+      cachedChats.unshift(chat); // Add new chats to top
+    }
+    notifyStorageReady();
+
+    // 2. Save to Fallback (Persistence guarantee)
+    fallbackStorage.saveChat(chat);
+
+    // 3. Try Supabase (Background)
     try {
       await supabaseStorage.saveChat(chat);
-      console.log('✅ Chat saved to Supabase:', chat.id);
-      
-      // Update cache
-      const index = cachedChats.findIndex((c) => c.id === chat.id);
-      if (index !== -1) {
-        cachedChats[index] = chat;
-      } else {
-        cachedChats.push(chat);
-      }
     } catch (error) {
-      console.error('❌ Supabase save failed, using localStorage fallback:', error);
-      
-      // Fallback to localStorage
-      fallbackStorage.saveChat(chat);
-      
-      // Update cache anyway
-      const index = cachedChats.findIndex((c) => c.id === chat.id);
-      if (index !== -1) {
-        cachedChats[index] = chat;
-      } else {
-        cachedChats.push(chat);
-      }
+      console.error('❌ Supabase save failed (using local only):', error);
     }
   },
 
   // Delete a chat (async to Supabase, then update cache)
   async deleteChat(id: string): Promise<void> {
+    // 1. Update cache immediately
+    cachedChats = cachedChats.filter((c) => c.id !== id);
+    notifyStorageReady();
+
+    // 2. Update Fallback
+    fallbackStorage.deleteChat(id);
+
+    // 3. Try Supabase
     try {
       await supabaseStorage.deleteChat(id);
-      console.log('✅ Chat deleted from Supabase:', id);
-      
-      // Update cache
-      cachedChats = cachedChats.filter((c) => c.id !== id);
     } catch (error) {
-      console.error('❌ Supabase delete failed, using localStorage fallback:', error);
-      
-      // Fallback to localStorage
-      fallbackStorage.deleteChat(id);
-      
-      // Update cache anyway
-      cachedChats = cachedChats.filter((c) => c.id !== id);
+      console.error('❌ Supabase delete failed (using local only):', error);
     }
   },
 
   // Get current chat ID (synchronous from cache)
   getCurrentChatId(): string | null {
-    if (!isInitialized) return null;
     return fallbackStorage.getCurrentChatId();
   },
 
   // Set current chat ID (async to Supabase, then update cache)
   async setCurrentChatId(id: string | null): Promise<void> {
+    // 1. Update Fallback
+    fallbackStorage.setCurrentChatId(id);
+    
+    // 2. Try Supabase
     try {
       await supabaseStorage.setCurrentChatId(id);
-      console.log('✅ Current chat ID set in Supabase:', id);
-      
-      // Also set in fallback
-      fallbackStorage.setCurrentChatId(id);
     } catch (error) {
-      console.error('❌ Supabase setCurrentChatId failed, using localStorage fallback:', error);
-      
-      // Fallback to localStorage
-      fallbackStorage.setCurrentChatId(id);
+      // Ignore
     }
   },
 
   // Get settings (synchronous from cache)
   getSettings(): Settings {
     if (!isInitialized || !cachedSettings) {
-      return {
-        fontStyle: 'normal',
-        focusMode: 'default',
-        semanticChunking: false,
-        minMessagesBeforeTopicChange: 5,
-        topicSimilarityThreshold: 60,
-        focusTask: null,
-        timerDuration: null,
-      };
+      return fallbackStorage.getSettings();
     }
     return cachedSettings;
   },
 
   // Update settings (async to Supabase, then update cache)
   async updateSettings(settings: Partial<Settings>): Promise<void> {
+    // 1. Update cache
+    if (cachedSettings) {
+      cachedSettings = { ...cachedSettings, ...settings };
+    } else {
+      cachedSettings = { ...fallbackStorage.getSettings(), ...settings };
+    }
+    
+    // 2. Update Fallback
+    fallbackStorage.updateSettings(settings);
+    notifyStorageReady();
+
+    // 3. Try Supabase
     try {
       await supabaseStorage.updateSettings(settings);
-      console.log('✅ Settings updated in Supabase:', settings);
-      
-      // Update cache
-      if (cachedSettings) {
-        cachedSettings = { ...cachedSettings, ...settings };
-      } else {
-        cachedSettings = {
-          fontStyle: 'normal',
-          focusMode: 'default',
-          semanticChunking: false,
-          minMessagesBeforeTopicChange: 5,
-          topicSimilarityThreshold: 60,
-          focusTask: null,
-          timerDuration: null,
-          ...settings,
-        };
-      }
-      console.log('✅ Cache updated with new settings:', cachedSettings);
     } catch (error) {
-      console.error('❌ Supabase updateSettings failed, using localStorage fallback:', error);
-      
-      // Fallback to localStorage
-      fallbackStorage.updateSettings(settings);
-      
-      // Update cache anyway
-      if (cachedSettings) {
-        cachedSettings = { ...cachedSettings, ...settings };
-      } else {
-        cachedSettings = {
-          fontStyle: 'normal',
-          focusMode: 'default',
-          semanticChunking: false,
-          minMessagesBeforeTopicChange: 5,
-          topicSimilarityThreshold: 60,
-          focusTask: null,
-          timerDuration: null,
-          ...settings,
-        };
-      }
-      console.log('✅ Cache updated with new settings (fallback):', cachedSettings);
+      console.error('❌ Supabase settings update failed:', error);
     }
   },
 
-  // Clear all data (async to Supabase, then update cache)
+  // Clear all data
   async clearAll(): Promise<void> {
+    cachedChats = [];
+    cachedSettings = null;
+    fallbackStorage.clearAll();
+    notifyStorageReady();
+
     try {
       await supabaseStorage.clearAll();
-      
-      // Clear cache
-      cachedChats = [];
-      cachedSettings = null;
     } catch (error) {
-      console.error('Error clearing all data:', error);
-      throw error;
+      console.error('Error clearing remote data:', error);
     }
   },
 
   // Refresh cache from Supabase
   async refreshCache(): Promise<void> {
-    try {
-      cachedChats = await supabaseStorage.getChats();
-      cachedSettings = await supabaseStorage.getSettings();
-    } catch (error) {
-      console.error('Error refreshing cache:', error);
-    }
+    await initializeCache();
   },
 };

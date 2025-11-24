@@ -13,53 +13,47 @@ export function useChat() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
-  const hasCreatedInitialChat = useRef(false); // Track if we've created the first chat
+  
+  // Refs for concurrent safety
+  const isCreatingRef = useRef(false); // Prevent double creation
+  const loadingRef = useRef(false); // Track loading state for cleanup
+  const abortControllerRef = useRef<AbortController | null>(null); // Cancel requests on switch
 
   // Load chats from storage when user changes
   useEffect(() => {
     if (user) {
-      const loadChats = async () => {
+      // Reset critical states on user change
+      setIsLoading(false);
+      loadingRef.current = false;
+      
+      const loadChats = () => {
         const storedChats = storage.getChats();
         const storedCurrentId = storage.getCurrentChatId();
-        console.log(`🔄 Loading chats from storage: ${storedChats.length} chats found`);
         
-        setChats(storedChats);
+        // Deduplicate chats just in case
+        // We rely on storage-wrapper's unshift order (newest first)
+        const uniqueChats = Array.from(new Map(storedChats.map(chat => [chat.id, chat])).values());
+        
+        // Optional: simple sort by updatedAt descending if needed, but storage usually handles it
+        uniqueChats.sort((a, b) => b.updatedAt - a.updatedAt);
+        
+        console.log(`🔄 Loading chats: ${uniqueChats.length} unique chats found`);
+        
+        setChats(uniqueChats);
         setCurrentChatId(storedCurrentId);
         
-        // If no chats exist AND we haven't created one yet, automatically create a new one
-        if (storedChats.length === 0 && !hasCreatedInitialChat.current) {
-          hasCreatedInitialChat.current = true; // Mark as created to prevent duplicates
+        // Only create initial chat if absolutely no chats exist and we are not already creating one
+        if (uniqueChats.length === 0 && !isCreatingRef.current) {
           console.log('📝 No chats found, creating first chat automatically...');
-          const firstChat: Chat = {
-            id: generateId(),
-            title: 'New Chat',
-            messages: [],
-            topic: null,
-            messageCount: 0,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-          };
-          
-          try {
-            await storage.saveChat(firstChat);
-            await storage.setCurrentChatId(firstChat.id);
-            console.log('✅ First chat created automatically:', firstChat.id);
-            
-            // Reload from storage
-            const updatedChats = storage.getChats();
-            setChats(updatedChats);
-            setCurrentChatId(firstChat.id);
-          } catch (error) {
-            console.error('❌ Error creating first chat:', error);
-            hasCreatedInitialChat.current = false; // Reset on error so it can retry
-          }
+          // Call the ref-protected create function
+          createNewChat();
         }
       };
 
       // Subscribe to storage ready events
       const unsubscribe = onStorageReady(loadChats);
       
-      // Also try to load immediately (in case storage is already ready)
+      // Also try to load immediately
       loadChats();
       
       return () => {
@@ -69,15 +63,47 @@ export function useChat() {
       // Clear chats when user logs out
       setChats([]);
       setCurrentChatId(null);
-      hasCreatedInitialChat.current = false; // Reset when user logs out
+      isCreatingRef.current = false;
     }
-  }, [user]);
+  }, [user]); 
 
   // Get current chat
   const currentChat = chats.find(chat => chat.id === currentChatId);
 
-  // Create a new chat
+  // Select a chat - Cancel pending requests
+  const selectChat = useCallback(async (chatId: string) => {
+    // 1. Cancel any pending AI generation from previous chat
+    if (abortControllerRef.current) {
+      console.log('🛑 Cancelling previous request due to chat switch');
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    
+    // 2. Reset loading state immediately
+    setIsLoading(false);
+    loadingRef.current = false;
+
+    // 3. Update UI immediately
+    setCurrentChatId(chatId);
+
+    // 4. Persist selection
+    try {
+      await storage.setCurrentChatId(chatId);
+    } catch (error) {
+      console.error('❌ Error selecting chat:', error);
+    }
+  }, []);
+
+  // Create a new chat - Robust implementation
   const createNewChat = useCallback(async () => {
+    // Prevent duplicate calls
+    if (isCreatingRef.current) {
+      console.warn('⚠️ Creation blocked: Already creating a chat');
+      return;
+    }
+    
+    isCreatingRef.current = true;
+
     const newChat: Chat = {
       id: generateId(),
       title: 'New Chat',
@@ -89,39 +115,39 @@ export function useChat() {
     };
 
     try {
+      // Add NEW chat to the TOP of the list immediately (Optimistic)
+      setChats(prev => {
+        const filtered = prev.filter(c => c.id !== newChat.id);
+        return [newChat, ...filtered];
+      });
+      
+      // Use the safe selectChat to handle cleanup of previous chat
+      selectChat(newChat.id);
+      
+      // Reset Focus Mode settings for the new chat context
+      storage.updateSettings({ 
+        focusMode: 'default',
+        focusTask: null 
+      }).catch(console.error);
+
+      // Persist to storage
       await storage.saveChat(newChat);
       await storage.setCurrentChatId(newChat.id);
-      console.log('✅ New chat created and saved to Supabase:', newChat.id);
+      console.log('✅ New chat created and saved:', newChat.id);
       
-      // Insert new chat at the BEGINNING (most recent first)
-      setChats(prev => [newChat, ...prev]);
-      setCurrentChatId(newChat.id);
-      
-      // Reload from storage in background to sync (after cache updates)
-      setTimeout(() => {
-        const updatedChats = storage.getChats();
-        setChats(updatedChats);
-      }, 1000);
     } catch (error) {
       console.error('❌ Error creating chat:', error);
-      // Fallback: update local state if storage fails
-      setChats(prev => [newChat, ...prev]);
-      setCurrentChatId(newChat.id);
+      // Rollback on error
+      setChats(prev => prev.filter(c => c.id !== newChat.id));
+    } finally {
+      // Release lock after short delay
+      setTimeout(() => {
+        isCreatingRef.current = false;
+      }, 500);
     }
 
     return newChat;
-  }, []);
-
-  // Select a chat
-  const selectChat = useCallback(async (chatId: string) => {
-    try {
-      await storage.setCurrentChatId(chatId);
-      console.log('✅ Chat selected and saved to Supabase:', chatId);
-    } catch (error) {
-      console.error('❌ Error selecting chat:', error);
-    }
-    setCurrentChatId(chatId);
-  }, []);
+  }, [selectChat]);
 
   // Delete a chat
   const deleteChat = useCallback(async (chatId: string) => {
@@ -141,9 +167,17 @@ export function useChat() {
 
   // Send a message
   const sendMessage = useCallback(async (content: string): Promise<Message | null> => {
-    if (!currentChat) return null;
+    // Capture current chat ID at start of request
+    const activeChatId = currentChatId;
+    
+    if (!activeChatId) return null;
+    
+    // Abort controller for this specific request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     setIsLoading(true);
+    loadingRef.current = true;
 
     try {
       // Get current settings and FREEZE them for this message
@@ -151,23 +185,15 @@ export function useChat() {
       
       // Check if message is a distraction (Hyperfocus mode only)
       let isDistraction = false;
-      console.log('🔍 Checking distraction:', {
-        focusMode: currentSettings.focusMode,
-        focusTask: currentSettings.focusTask,
-        willCheck: currentSettings.focusMode === 'hyperfocus' && !!currentSettings.focusTask
-      });
       
       if (currentSettings.focusMode === 'hyperfocus' && currentSettings.focusTask) {
         console.log(`🎯 Running AI distraction check for task: "${currentSettings.focusTask}"`);
         try {
           const relevanceCheck = await checkTaskRelevance(content, currentSettings.focusTask);
           isDistraction = !relevanceCheck.isRelevant;
-          console.log(`🎯 Result: ${isDistraction ? '❌ DISTRACTION' : '✅ ON-TASK'} (confidence: ${relevanceCheck.confidence}%)`);
         } catch (error) {
           console.error('❌ Error in distraction check:', error);
         }
-      } else {
-        console.log('⏭️ Skipping distraction check (not in hyperfocus mode or no task set)');
       }
       
       // Create user message with FROZEN settings
@@ -181,134 +207,152 @@ export function useChat() {
         isDistraction, // Flag if message is off-topic
       };
 
-      // Update chat with user message
-      const updatedChat = {
-        ...currentChat,
-        messages: [...currentChat.messages, userMessage],
-        messageCount: currentChat.messageCount + 1,
-        updatedAt: Date.now(),
-      };
-
-      // Set title from first message
-      if (updatedChat.messages.length === 1) {
-        updatedChat.title = generateTitle(content);
-      }
-
-      // Update state and storage
-      setChats(prev => prev.map(c => c.id === currentChat.id ? updatedChat : c));
-      await storage.saveChat(updatedChat);
-      console.log('✅ User message saved to Supabase');
+      // Update state immediately (Optimistic)
+      setChats(prev => prev.map(c => {
+        if (c.id === activeChatId) {
+          // DEDUPLICATION: Check if message already exists
+          if (c.messages.some(m => m.id === userMessage.id)) {
+             return c;
+          }
+          
+          const updatedChat = {
+            ...c,
+            messages: [...c.messages, userMessage],
+            messageCount: c.messageCount + 1,
+            updatedAt: Date.now(),
+            title: c.messages.length === 0 ? generateTitle(content) : c.title
+          };
+          // Save to storage in background
+          storage.saveChat(updatedChat).catch(console.error);
+          return updatedChat;
+        }
+        return c;
+      }));
 
       // Prepare messages for AI
+      const chatForContext = storage.getChats().find(c => c.id === activeChatId);
+      const historyMessages = chatForContext ? chatForContext.messages : [];
+      
       const isDiagramRequest = detectDiagramIntent(content);
       const hasDataContext = content.includes('[Data file uploaded:');
       const systemPrompt = getSystemPrompt(isDiagramRequest, hasDataContext);
       
       const apiMessages = [
         { role: 'system' as const, content: systemPrompt },
-        ...updatedChat.messages.map(m => ({
+        ...historyMessages.map(m => ({
           role: m.role as 'user' | 'assistant',
           content: m.content,
         })),
+        { role: 'user' as const, content: content } // Ensure current message is included
       ];
 
       // Get AI response with selected model
       const aiResponse = await sendChatCompletion(apiMessages, selectedModel);
 
+      // GUARD: Check if we switched chats while waiting
+      if (currentChatId !== activeChatId || abortController.signal.aborted) {
+        console.warn('🛑 Ignoring AI response - User switched chats');
+        return null;
+      }
+
       // Extract diagram code if present
       const { mermaidCode, explanation } = extractContent(aiResponse);
 
-      // Create assistant message with FROZEN settings (same as user message)
+      // Create assistant message
       const assistantMessage: Message = {
         id: generateId(),
         role: 'assistant',
         content: explanation || aiResponse,
         mermaidCode: mermaidCode,
         timestamp: Date.now(),
-        appliedFontStyle: currentSettings.fontStyle, // FROZEN at creation
-        appliedChunking: currentSettings.semanticChunking, // FROZEN at creation
-        semanticChunks: null, // Will be populated if chunking is enabled
+        appliedFontStyle: currentSettings.fontStyle,
+        appliedChunking: currentSettings.semanticChunking,
+        semanticChunks: null,
       };
 
       // Update chat with assistant message
-      const finalChat = {
-        ...updatedChat,
-        messages: [...updatedChat.messages, assistantMessage],
-        updatedAt: Date.now(),
-      };
+      setChats(prev => prev.map(c => {
+        if (c.id === activeChatId) {
+          // DEDUPLICATION
+          if (c.messages.some(m => m.id === assistantMessage.id)) {
+            return c;
+          }
 
-      // Update state and storage
-      setChats(prev => prev.map(c => c.id === currentChat.id ? finalChat : c));
-      await storage.saveChat(finalChat);
-      console.log('✅ Assistant message saved to Supabase');
+          const finalChat = {
+            ...c,
+            messages: [...c.messages, assistantMessage],
+            updatedAt: Date.now(),
+          };
+          storage.saveChat(finalChat).catch(console.error);
+          return finalChat;
+        }
+        return c;
+      }));
 
       return assistantMessage;
-    } catch (error) {
-      console.error('❌ Error sending message:', error);
-      console.error('❌ Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        selectedModel,
-        messageLength: content.length
-      });
-      
-      // Create error message with FROZEN settings and helpful debug info
-      let errorContent = 'Sorry, I encountered an error while processing your message. Please try again.';
-      
-      // Add more specific error info for debugging
-      if (error instanceof Error) {
-        if (error.message.includes('API key')) {
-          errorContent = 'API key error. Please check your configuration.';
-        } else if (error.message.includes('Failed to fetch') || error.message.includes('network')) {
-          errorContent = 'Network error. Please check your internet connection and try again.';
-        } else if (error.message.includes('rate limit')) {
-          errorContent = 'Rate limit exceeded. Please wait a moment and try again.';
-        } else if (error.message.includes('model')) {
-          errorContent = `Model error with ${selectedModel}. Try selecting a different model.`;
-        }
+
+    } catch (error: any) {
+      // Don't show error if it was an abort
+      if (error.name === 'AbortError' || abortController.signal.aborted) {
+        console.log('🛑 Request aborted');
+        return null;
       }
+
+      console.error('❌ Error sending message:', error);
+      
+      // Create error message
+      let errorContent = 'Sorry, I encountered an error. Please try again.';
+      if (error.message.includes('API key')) errorContent = 'API key error. Check configuration.';
+      else if (error.message.includes('rate limit')) errorContent = 'Rate limit exceeded. Wait a moment.';
+      else if (error.message.includes('404')) errorContent = `Model ${selectedModel} not found. Try another model.`;
       
       const errorMessage: Message = {
         id: generateId(),
         role: 'assistant',
         content: errorContent,
         timestamp: Date.now(),
-        appliedFontStyle: storage.getSettings().fontStyle, // FROZEN at creation
-        appliedChunking: storage.getSettings().semanticChunking, // FROZEN at creation
+        appliedFontStyle: 'normal',
+        appliedChunking: false,
       };
 
-      const errorChat = {
-        ...currentChat,
-        messages: [...currentChat.messages, errorMessage],
-        updatedAt: Date.now(),
-      };
-
-      setChats(prev => prev.map(c => c.id === currentChat.id ? errorChat : c));
-      
-      // Try to save error state, but don't fail if storage is broken
-      try {
-        await storage.saveChat(errorChat);
-        console.log('✅ Error message saved to Supabase');
-      } catch (storageError) {
-        console.error('❌ Failed to save error message:', storageError);
+      // Only update if still on same chat
+      if (currentChatId === activeChatId) {
+        setChats(prev => prev.map(c => {
+          if (c.id === activeChatId) {
+             // DEDUPLICATION
+            if (c.messages.some(m => m.id === errorMessage.id)) {
+              return c;
+            }
+            
+            const errorChat = {
+              ...c,
+              messages: [...c.messages, errorMessage],
+              updatedAt: Date.now(),
+            };
+            storage.saveChat(errorChat).catch(console.error);
+            return errorChat;
+          }
+          return c;
+        }));
       }
 
       return null;
     } finally {
-      setIsLoading(false);
+      // Only turn off loading if we are still on the same chat
+      if (currentChatId === activeChatId) {
+        setIsLoading(false);
+        loadingRef.current = false;
+      }
+      abortControllerRef.current = null;
     }
-  }, [currentChat, selectedModel]);
+  }, [currentChatId, selectedModel]);
 
   // Update chat topic
   const updateTopic = useCallback(async (chatId: string, topic: string) => {
     setChats(prev => prev.map(chat => {
       if (chat.id === chatId) {
         const updated = { ...chat, topic };
-        storage.saveChat(updated).then(() => {
-          console.log('✅ Topic updated and saved to Supabase:', topic);
-        }).catch(error => {
-          console.error('❌ Error saving topic:', error);
-        });
+        storage.saveChat(updated).catch(console.error);
         return updated;
       }
       return chat;
@@ -329,4 +373,3 @@ export function useChat() {
     updateTopic,
   };
 }
-

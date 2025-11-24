@@ -82,7 +82,8 @@ export function detectDiagramIntent(userMessage: string): boolean {
     'create a diagram', 'make a diagram', 'generate diagram',
     'mapa mental', 'hacer un mapa', 'hazme un', 'dame un',
     'crea un diagrama', 'dibuja', 'visualiza', 'muestra',
-    'gráfico', 'organigrama', 'línea de tiempo'
+    'gráfico', 'organigrama', 'línea de tiempo',
+    'mapa', 'estructura', 'resumen visual'
   ];
 
   const lowerMessage = userMessage.toLowerCase();
@@ -144,49 +145,51 @@ Always include a brief explanation (1-2 lines) before the diagram code.`;
   }
   
   if (isDiagramRequest) {
-    return `You are a Mermaid diagram expert. Generate ONLY valid, tested Mermaid code.
+    return `You are a Mermaid diagram expert. Your task is to GENERATE A DIAGRAM based on the user's request.
 
-MANDATORY FORMAT:
+🔴 IMPORTANT: You MUST output valid Mermaid code inside a markdown code block.
+
+FORMAT REQUIRED:
+
+Brief explanation of what the diagram shows.
+
 \`\`\`mermaid
-[your code here]
+[DIAGRAM TYPE]
+    [DIAGRAM CONTENT]
 \`\`\`
 
-VALID SYNTAXES:
+SUPPORTED DIAGRAM TYPES:
+1. mindmap (Best for breaking down topics/concepts)
+2. flowchart LR or flowchart TD (Best for processes/steps)
+3. sequenceDiagram (Best for interactions)
+4. pie (Best for distributions)
 
-**MINDMAP** (use for concepts/topics):
+EXAMPLE MINDMAP:
 \`\`\`mermaid
 mindmap
-  root((Main Topic))
-    SubTopic1
-      Detail1
-      Detail2
-    SubTopic2
-      Detail3
+  root((Central Topic))
+    Main Idea 1
+      Detail A
+      Detail B
+    Main Idea 2
+      Detail C
 \`\`\`
 
-**FLOWCHART** (use for processes):
+EXAMPLE FLOWCHART:
 \`\`\`mermaid
 flowchart LR
     A[Start] --> B{Decision}
-    B -->|Yes| C[Action1]
-    B -->|No| D[Action2]
+    B -->|Yes| C[Result 1]
+    B -->|No| D[Result 2]
 \`\`\`
 
-**ABSOLUTE RULES:**
-1. ALWAYS start with diagram type (mindmap, flowchart, etc.)
-2. Use 2-space indentation
-3. NO tabs
-4. Close ALL parentheses
-5. Test code is valid before responding
-6. Keep it SIMPLE - max 10 nodes
-7. Add SHORT explanation AFTER code block (1-2 sentences)
-
-RESPOND FORMAT:
-\`\`\`mermaid
-[code]
-\`\`\`
-
-Brief explanation.`;
+RULES:
+- The code block MUST start with \`\`\`mermaid
+- Do not include syntax errors.
+- Keep node labels concise.
+- If user asks for a mindmap, use 'mindmap' syntax.
+- If user asks for a flowchart/process, use 'flowchart'.
+`;
   }
 
   return `You are Hyperfocus AI, an AI assistant designed specifically to help neurodivergent individuals maximize their concentration and learning. 
@@ -197,6 +200,7 @@ Your core principles:
 3. Use formatting (bold, lists, headings) to improve readability
 4. Stay focused on the current topic without going off on tangents
 5. When explaining concepts, prioritize understanding over exhaustiveness
+6. If the user asks for a diagram or visual, you MUST generate one using Mermaid syntax.
 
 Always be supportive and patient. Remember that you're helping someone who may struggle with traditional learning methods.`;
 }
@@ -465,4 +469,3 @@ Respond ONLY with JSON (no markdown, no backticks):
     return { isRelevant: true, confidence: 50 };
   }
 }
-

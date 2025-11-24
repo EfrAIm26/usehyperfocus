@@ -28,6 +28,18 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
     setEditableCode(code);
     setActiveTab('view'); // Reset to view when new diagram
     setShowEditBox(false);
+
+    // Smart Zoom Logic based on diagram type
+    const cleanCode = code.trim().toLowerCase();
+    if (cleanCode.startsWith('mindmap')) {
+      setZoom(250); // Mindmaps need lots of zoom
+    } else if (cleanCode.startsWith('graph') || cleanCode.startsWith('flowchart') || cleanCode.startsWith('sequence')) {
+      setZoom(150); // Standard diagrams need moderate zoom
+    } else if (cleanCode.startsWith('pie')) {
+      setZoom(150); // Pie charts also look better slightly zoomed
+    } else {
+      setZoom(150); // Default for other types
+    }
   }, [code]);
 
   // Render diagram with error suppression
@@ -79,7 +91,7 @@ export default function DiagramSidePanel({ code, isOpen, onClose, onEditRequest 
     renderDiagram();
   }, [codeToRender, activeTab, isOpen]);
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 200));
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 300)); // Allow up to 300%
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 10, 50));
   const handleZoomReset = () => setZoom(100);
 
